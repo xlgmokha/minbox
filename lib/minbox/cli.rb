@@ -25,6 +25,45 @@ END_OF_MESSAGE
         end       
       end
 
+      desc 'server <HOST> <PORT>', 'SMTP server'
+      def server(host = 'localhost', port = '25')
+        require 'socket'
+
+        server = TCPServer.new(port.to_i)
+        loop do
+          client = server.accept
+
+          client.puts "220"
+          ehlo, client_domain = client.gets.split(" ")
+          puts ehlo, client_domain
+
+          client.puts "250-#{host}"
+          client.puts "250-8BITMIME"
+          client.puts "250-SIZE 10485760"
+          client.puts "250-AUTH PLAIN LOGIN"
+          client.puts "250 OK"
+
+          headers = []
+          body = []
+          data = client.gets
+          until data.start_with?("DATA")
+            headers << data
+            client.puts "250 OK"
+          end
+          client.puts "354 End data with <CR><LF>.<CR><LF>"
+
+          data = client.gets
+          until data.ends_with?("\r\n.\r\n")
+            body << data
+          end
+
+          client.puts "250 OK"
+          client.puts "221 Bye"
+
+          client.close
+        end
+      end
+
       desc 'version', 'Display the current version'
       def version
         say Minbox::VERSION
