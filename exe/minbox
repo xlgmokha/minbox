@@ -1,3 +1,5 @@
 #!/usr/bin/env ruby
 
-require "minbox"
+require "minbox/cli"
+
+Minbox::Cli::Application.start(ARGV)
