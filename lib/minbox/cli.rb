@@ -1,4 +1,5 @@
 require 'thor'
+require 'mail'
 
 require 'minbox'
 
@@ -9,19 +10,15 @@ module Minbox
 
       desc 'client <HOST> <PORT>', 'SMTP client'
       def client(host = 'localhost', port = 25)
-        mail = <<END_OF_MESSAGE
-From: Your Name <me@example.org>
-To: Destination Address <them@example.com>
-Subject: test message
-Date: Sat, 23 Jun 2001 16:26:43 +0900
-Message-Id: <unique.message.id.string@example.com>
-
-This is a test message.
-END_OF_MESSAGE
-
+        mail = Mail.new do
+          from 'Your Name <me@example.org>'
+          to 'Destination Address <them@example.com>'
+          subject 'test message'
+          body 'This is a test message.'
+        end
         require 'net/smtp'
         Net::SMTP.start(host, port) do |smtp|
-          smtp.send_message(mail, 'me@example.org', 'them@example.com')
+          smtp.send_message(mail.to_s, 'me@example.org', 'them@example.com')
         end       
       end
 
@@ -36,13 +33,19 @@ END_OF_MESSAGE
 
           client.puts "220"
           ehlo, client_domain = client.gets.split(" ")
-          puts ehlo, client_domain
+          puts [ehlo, client_domain].inspect
 
-          client.puts "250-#{host}"
-          client.puts "250-8BITMIME"
-          client.puts "250-SIZE 10485760"
-          client.puts "250-AUTH PLAIN LOGIN"
-          client.puts "250 OK"
+          if ["HELO", "EHLO"].include?(ehlo)
+            client.puts "250-#{host}"
+            client.puts "250-8BITMIME"
+            client.puts "250-SIZE 10485760"
+            client.puts "250-AUTH PLAIN LOGIN"
+            client.puts "250 OK"
+          else
+            puts 'Ooops...'
+            client.close
+            next
+          end
 
           data = client.gets
           until data.start_with?("DATA")
@@ -62,6 +65,7 @@ END_OF_MESSAGE
           client.puts "221 Bye"
 
           client.close
+          puts mail.inspect
         end
       end
 
