@@ -48,16 +48,18 @@ END_OF_MESSAGE
           data = client.gets
           until data.start_with?("DATA")
             headers << data
-            client.puts "250 OK"
+            client.puts "250 OK\r\n"
+            data = client.gets
           end
           client.puts "354 End data with <CR><LF>.<CR><LF>"
 
           data = client.gets
-          until data.ends_with?("\r\n.\r\n")
+          until data.match(/^\.\r\n$/)
             body << data
+            data = client.gets
           end
 
-          client.puts "250 OK"
+          client.puts "250 OK\r\n"
           client.puts "221 Bye"
 
           client.close
