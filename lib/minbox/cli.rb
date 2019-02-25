@@ -32,6 +32,7 @@ END_OF_MESSAGE
         server = TCPServer.new(port.to_i)
         loop do
           client = server.accept
+          mail = { headers: [], body: [] }
 
           client.puts "220"
           ehlo, client_domain = client.gets.split(" ")
@@ -43,23 +44,21 @@ END_OF_MESSAGE
           client.puts "250-AUTH PLAIN LOGIN"
           client.puts "250 OK"
 
-          headers = []
-          body = []
           data = client.gets
           until data.start_with?("DATA")
-            headers << data
-            client.puts "250 OK\r\n"
+            mail[:headers] << data
+            client.puts "250 OK"
             data = client.gets
           end
           client.puts "354 End data with <CR><LF>.<CR><LF>"
 
           data = client.gets
           until data.match(/^\.\r\n$/)
-            body << data
+            mail[:body] << data
             data = client.gets
           end
 
-          client.puts "250 OK\r\n"
+          client.puts "250 OK"
           client.puts "221 Bye"
 
           client.close
