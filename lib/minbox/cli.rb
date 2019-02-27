@@ -22,9 +22,10 @@ module Minbox
         end
       end
 
+      method_option :output, type: :array, default: ['stdout']
       desc 'server <HOST> <PORT>', 'SMTP server'
       def server(host = 'localhost', port = '25')
-        publisher = Publisher.new(LogPublisher.new, RedisPublisher.new)
+        publisher = publishers_for(options[:output])
         Server.new(host, port).listen! do |mail|
           publisher.publish(mail)
         end
@@ -33,6 +34,23 @@ module Minbox
       desc 'version', 'Display the current version'
       def version
         say Minbox::VERSION
+      end
+
+      private
+
+      def publishers_for(output)
+        publisher = Publisher.new
+        output.each do |x|
+          case x
+          when 'stdout'
+            publisher.add(LogPublisher.new)
+          when 'redis'
+            publisher.add(RedisPublisher.new)
+          when 'file'
+            publisher.add(FilePublisher.new)
+          end
+        end
+        publisher
       end
     end
   end
