@@ -19,12 +19,14 @@ module Minbox
         require 'net/smtp'
         Net::SMTP.start(host, port) do |smtp|
           smtp.send_message(mail.to_s, 'me@example.org', 'them@example.com')
-        end       
+        end
       end
 
       desc 'server <HOST> <PORT>', 'SMTP server'
       def server(host = 'localhost', port = '25')
-        Server.new(host, port).listen!
+        Server.new(host, port).listen! do |mail|
+          puts mail.to_s
+        end
       end
 
       desc 'version', 'Display the current version'
