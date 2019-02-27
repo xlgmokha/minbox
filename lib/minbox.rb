@@ -1,5 +1,6 @@
 require 'socket'
 
+require "minbox/publisher"
 require "minbox/server"
 require "minbox/version"
 

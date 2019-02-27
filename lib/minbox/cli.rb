@@ -24,8 +24,9 @@ module Minbox
 
       desc 'server <HOST> <PORT>', 'SMTP server'
       def server(host = 'localhost', port = '25')
+        publisher = Publisher.new(LogPublisher.new, RedisPublisher.new)
         Server.new(host, port).listen! do |mail|
-          puts mail.to_s
+          publisher.publish(mail)
         end
       end
 
