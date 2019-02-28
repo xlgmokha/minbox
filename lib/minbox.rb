@@ -1,5 +1,7 @@
 require 'socket'
+require 'logger'
 
+require "minbox/core"
 require "minbox/publisher"
 require "minbox/server"
 require "minbox/version"

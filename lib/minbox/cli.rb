@@ -14,7 +14,7 @@ module Minbox
           from 'Your Name <me@example.org>'
           to 'Destination Address <them@example.com>'
           subject 'test message'
-          body 'This is a test message.'
+          body "#{Time.now} This is a test message."
         end
         require 'net/smtp'
         Net::SMTP.start(host, port) do |smtp|
@@ -25,7 +25,7 @@ module Minbox
       method_option :output, type: :array, default: ['stdout']
       desc 'server <HOST> <PORT>', 'SMTP server'
       def server(host = 'localhost', port = '25')
-        publisher = publishers_for(options[:output])
+        publisher = Publisher.from(options[:output])
         Server.new(host, port).listen! do |mail|
           publisher.publish(mail)
         end

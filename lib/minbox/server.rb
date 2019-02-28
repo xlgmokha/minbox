@@ -1,16 +1,21 @@
 module Minbox
   class Server
-    attr_reader :host, :port
+    attr_reader :host, :port, :logger
 
-    def initialize(host, port)
+    def initialize(host, port, logger = Minbox.logger)
       @host = host
       @port = port
+      @logger = logger
     end
 
     def listen!
+      logger.debug("Starting server...")
       server = TCPServer.new(port.to_i)
+      logger.debug("Server started!")
       loop do
         yield handle(server.accept)
+      rescue StandardError => error
+        logger.error(error)
       end
     end
 

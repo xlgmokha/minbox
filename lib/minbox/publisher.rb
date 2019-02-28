@@ -15,15 +15,30 @@ module Minbox
     def publish(mail)
       publishers.each { |x| x.publish(mail) }
     end
+
+    def self.from(outputs)
+      publisher = Publisher.new
+      outputs.each do |x|
+        case x
+        when 'stdout'
+          publisher.add(LogPublisher.new)
+        when 'redis'
+          publisher.add(RedisPublisher.new)
+        when 'file'
+          publisher.add(FilePublisher.new)
+        end
+      end
+      publisher
+    end
   end
 
   class LogPublisher
-    def initialize(logger = STDOUT)
+    def initialize(logger = Minbox.logger)
       @logger = logger
     end
 
     def publish(mail)
-      @logger.puts mail.to_s
+      @logger.debug(mail.to_s)
     end
   end
 
