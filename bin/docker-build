@@ -1,0 +1,15 @@
+#!/bin/sh
+
+bundle exec rake clean clobber build
+cp Dockerfile pkg/
+docker pull ruby:2.6-alpine
+docker image build \
+  -t "mokhan/minbox:latest" \
+  -f pkg/Dockerfile pkg/
+
+if [[ -z "${DOCKER_PUSH}" ]]; then
+  echo 'skip push'
+else
+  echo 'pushing...'
+  docker push "mokhan/minbox:latest"
+fi
