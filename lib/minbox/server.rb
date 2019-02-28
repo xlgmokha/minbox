@@ -9,7 +9,7 @@ module Minbox
     end
 
     def listen!
-      logger.debug("Starting server...")
+      logger.debug("Starting server on port #{port}...")
       server = TCPServer.new(port.to_i)
       logger.debug("Server started!")
       loop do
@@ -29,7 +29,7 @@ module Minbox
         client.puts "250-#{host}"
         client.puts "250 OK"
       else
-        puts 'Ooops...'
+        logger.error 'Ooops...'
         client.close
         return
       end
