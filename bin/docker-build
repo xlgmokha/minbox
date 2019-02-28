@@ -1,6 +1,5 @@
 #!/bin/sh
 
-bundle exec rake clean clobber build
 cp Dockerfile pkg/
 docker pull ruby:2.6-alpine
 docker image build \
