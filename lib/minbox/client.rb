@@ -10,16 +10,9 @@ module Minbox
 
     def mail_message
       socket.puts "220"
-      ehlo, _client_domain = socket.gets.split(" ")
 
-      if ["HELO", "EHLO"].include?(ehlo)
-        socket.puts "250-#{host}"
-        socket.puts "250 OK"
-      else
-        logger.error 'Ooops...'
-        socket.close
-        return
-      end
+      line = socket.gets
+      process(line, socket)
 
       data = socket.gets
       until data.start_with?("DATA")
@@ -40,6 +33,28 @@ module Minbox
       socket.close
 
       Mail.new(mail[:body].join)
+    end
+
+    private
+
+    def process(line, socket)
+      case line
+      when /^EHLO/i then ehlo(line, socket)
+      when /^HELO/i then helo(line, socket)
+      else
+        socket.puts('502 Invalid/unsupported command')
+      end
+    end
+
+    def ehlo(line, socket)
+      _ehlo, _client_domain = line.split(" ")
+      socket.puts "250-#{host}"
+      socket.puts "250 OK"
+    end
+
+    def helo(line, socket)
+      _ehlo, _client_domain = line.split(" ")
+      socket.puts "250 #{host}"
     end
   end
 end
