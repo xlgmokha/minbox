@@ -45,7 +45,6 @@ module Minbox
         line = read
       end
       write "250 OK"
-      quit
     end
 
     def rcpt_to(line)
