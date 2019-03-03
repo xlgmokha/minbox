@@ -5,7 +5,7 @@ module Minbox
     def initialize(host, socket, logger)
       @host = host
       @logger = logger
-      @mail = { headers: [], body: [] }
+      @body = []
       @socket = socket
     end
 
@@ -24,7 +24,7 @@ module Minbox
           socket.puts('502 Invalid/unsupported command')
         end
       end
-      Mail.new(@mail[:body].join)
+      Mail.new(@body.join)
     end
 
     private
@@ -39,7 +39,7 @@ module Minbox
       socket.puts "354 End data with <CR><LF>.<CR><LF>"
       line = socket.gets
       until line.match(/^\.\r\n$/)
-        @mail[:body] << line
+        @body << line
         line = socket.gets
       end
       socket.puts "250 OK"
@@ -47,12 +47,10 @@ module Minbox
     end
 
     def rcpt_to(line)
-      @mail[:headers] << line
       socket.puts "250 OK"
     end
 
     def mail_from(line)
-      @mail[:headers] << line
       socket.puts "250 OK"
     end
 
