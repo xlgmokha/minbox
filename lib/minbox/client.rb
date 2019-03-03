@@ -19,6 +19,8 @@ module Minbox
         when /^RCPT TO/i then rcpt_to(line)
         when /^DATA/i then data(line)
         when /^QUIT/i then quit
+        when /^STARTTLS/i then start_tls
+        when /^RSET/i then reset
         else
           logger.error(line)
           socket.puts('502 Invalid/unsupported command')
@@ -63,6 +65,15 @@ module Minbox
     def helo(line)
       _ehlo, _client_domain = line.split(" ")
       socket.puts "250 #{host}"
+    end
+
+    def start_tls
+      socket.puts "502 TLS not available"
+    end
+
+    def reset
+      @body = []
+      socket.puts '250 OK'
     end
   end
 end
