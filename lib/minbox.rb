@@ -3,6 +3,7 @@ require 'logger'
 
 require "minbox/core"
 require "minbox/publisher"
+require "minbox/client"
 require "minbox/server"
 require "minbox/version"
 
