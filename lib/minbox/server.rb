@@ -22,7 +22,7 @@ module Minbox
 
     def handle(socket)
       logger.debug("client connected: #{socket.inspect}")
-      Client.new(host, socket).mail_message
+      Client.new(host, socket, logger).mail_message
     end
 
     def shutdown!
