@@ -13,7 +13,10 @@ module Minbox
     end
 
     def publish(mail)
-      publishers.each { |x| x.publish(mail) }
+      Thread.new do
+        Minbox.logger.debug("Publishing: #{mail.message_id}")
+        publishers.each { |x| x.publish(mail) }
+      end
     end
 
     def self.from(outputs)

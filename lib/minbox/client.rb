@@ -5,7 +5,6 @@ module Minbox
     def initialize(host, socket, logger)
       @host = host
       @logger = logger
-      @body = []
       @socket = socket
     end
 
@@ -17,7 +16,7 @@ module Minbox
         when /^HELO/i then helo(line)
         when /^MAIL FROM/i then mail_from(line)
         when /^RCPT TO/i then rcpt_to(line)
-        when /^DATA/i then data(line)
+        when /^DATA/i then data(line, &block)
         when /^QUIT/i then quit
         when /^STARTTLS/i then start_tls
         when /^RSET/i then reset
@@ -27,7 +26,6 @@ module Minbox
           write '502 Invalid/unsupported command'
         end
       end
-      block.call(Mail.new(@body.join))
     end
 
     private
@@ -37,14 +35,16 @@ module Minbox
       close
     end
 
-    def data(line)
+    def data(line, &block)
       write "354 End data with <CR><LF>.<CR><LF>"
+      body = []
       line = read
       until line.nil? || line.match(/^\.\r\n$/)
-        @body << line
+        body << line
         line = read
       end
       write "250 OK"
+      block.call(Mail.new(body.join))
     end
 
     def rcpt_to(line)
@@ -71,7 +71,6 @@ module Minbox
     end
 
     def reset
-      @body = []
       write '250 OK'
     end
 
@@ -80,13 +79,13 @@ module Minbox
     end
 
     def write(message)
-      logger.debug message
+      logger.debug message.inspect
       socket.puts message
     end
 
     def read
       line = socket.gets
-      logger.debug line
+      logger.debug line.inspect
       line
     end
 
