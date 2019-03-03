@@ -21,6 +21,7 @@ module Minbox
         when /^QUIT/i then quit
         when /^STARTTLS/i then start_tls
         when /^RSET/i then reset
+        when /^NOOP/i then noop
         else
           logger.error(line)
           socket.puts('502 Invalid/unsupported command')
@@ -73,6 +74,10 @@ module Minbox
 
     def reset
       @body = []
+      socket.puts '250 OK'
+    end
+
+    def noop
       socket.puts '250 OK'
     end
   end
