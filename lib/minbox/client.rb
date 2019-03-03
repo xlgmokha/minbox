@@ -9,7 +9,7 @@ module Minbox
       @socket = socket
     end
 
-    def mail_message
+    def mail_message(&block)
       socket.puts "220"
       while socket && (line = socket.gets)
         case line
@@ -27,7 +27,7 @@ module Minbox
           socket.puts('502 Invalid/unsupported command')
         end
       end
-      Mail.new(@body.join)
+      block.call(Mail.new(@body.join))
     end
 
     private
