@@ -14,22 +14,12 @@ module Minbox
       line = socket.gets
       process(line, socket)
 
-      data = socket.gets
-      until data.start_with?("DATA")
-        mail[:headers] << data
-        socket.puts "250 OK"
-        data = socket.gets
+      line = socket.gets
+      until line.start_with?("DATA")
+        process(line, socket)
+        line = socket.gets
       end
-      socket.puts "354 End data with <CR><LF>.<CR><LF>"
-
-      data = socket.gets
-      until data.match(/^\.\r\n$/)
-        mail[:body] << data
-        data = socket.gets
-      end
-
-      socket.puts "250 OK"
-      socket.puts "221 Bye"
+      process(line, socket)
       socket.close
 
       Mail.new(mail[:body].join)
@@ -41,9 +31,36 @@ module Minbox
       case line
       when /^EHLO/i then ehlo(line, socket)
       when /^HELO/i then helo(line, socket)
+      when /^MAIL FROM/i then mail_from(line, socket)
+      when /^RCPT TO/i then rcpt_to(line, socket)
+      when /^DATA/i then data(line, socket)
       else
+        puts "***" * 10
+        puts line.inspect
+        puts "***" * 10
         socket.puts('502 Invalid/unsupported command')
       end
+    end
+
+    def data(line, socket)
+      socket.puts "354 End data with <CR><LF>.<CR><LF>"
+      line = socket.gets
+      until line.match(/^\.\r\n$/)
+        mail[:body] << line
+        line = socket.gets
+      end
+      socket.puts "250 OK"
+      socket.puts "221 Bye"
+    end
+
+    def rcpt_to(line, socket)
+      mail[:headers] << line
+      socket.puts "250 OK"
+    end
+
+    def mail_from(line, socket)
+      mail[:headers] << line
+      socket.puts "250 OK"
     end
 
     def ehlo(line, socket)
