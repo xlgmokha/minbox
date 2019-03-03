@@ -10,8 +10,8 @@ module Minbox
     end
 
     def mail_message(&block)
-      socket.puts "220"
-      while socket && (line = socket.gets)
+      write "220"
+      while connected? && (line = read)
         case line
         when /^EHLO/i then ehlo(line)
         when /^HELO/i then helo(line)
@@ -24,7 +24,7 @@ module Minbox
         when /^NOOP/i then noop
         else
           logger.error(line)
-          socket.puts('502 Invalid/unsupported command')
+          write '502 Invalid/unsupported command'
         end
       end
       block.call(Mail.new(@body.join))
@@ -33,52 +33,68 @@ module Minbox
     private
 
     def quit
-      socket.puts "221 Bye"
-      socket.close
-      @socket = nil
+      write "221 Bye"
+      close
     end
 
     def data(line)
-      socket.puts "354 End data with <CR><LF>.<CR><LF>"
-      line = socket.gets
+      write "354 End data with <CR><LF>.<CR><LF>"
+      line = read
       until line.nil? || line.match(/^\.\r\n$/)
         @body << line
-        line = socket.gets
+        line = read
       end
-      socket.puts "250 OK"
+      write "250 OK"
       quit
     end
 
     def rcpt_to(line)
-      socket.puts "250 OK"
+      write "250 OK"
     end
 
     def mail_from(line)
-      socket.puts "250 OK"
+      write "250 OK"
     end
 
     def ehlo(line)
       _ehlo, _client_domain = line.split(" ")
-      socket.puts "250-#{host}"
-      socket.puts "250 OK"
+      write "250-#{host}"
+      write "250 OK"
     end
 
     def helo(line)
       _ehlo, _client_domain = line.split(" ")
-      socket.puts "250 #{host}"
+      write "250 #{host}"
     end
 
     def start_tls
-      socket.puts "502 TLS not available"
+      write "502 TLS not available"
     end
 
     def reset
       @body = []
-      socket.puts '250 OK'
+      write '250 OK'
     end
 
     def noop
-      socket.puts '250 OK'
+      write '250 OK'
+    end
+
+    def write(message)
+      socket.puts message
+    end
+
+    def read
+      socket.gets
+    end
+
+    def close
+      socket&.close
+      @socket = nil
+    end
+
+    def connected?
+      @socket
     end
   end
 end
