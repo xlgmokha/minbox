@@ -10,10 +10,9 @@ module Minbox
 
     def mail_message
       socket.puts "220"
-      while (line = socket.gets)
+      while socket && (line = socket.gets)
         process(line, socket)
       end
-      socket.close
       Mail.new(mail[:body].join)
     end
 
@@ -37,6 +36,8 @@ module Minbox
 
     def quit(line, socket)
       socket.puts "221 Bye"
+      socket.close
+      @socket = nil
     end
 
     def data(line, socket)
