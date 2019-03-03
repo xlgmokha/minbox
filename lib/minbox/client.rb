@@ -10,18 +10,10 @@ module Minbox
 
     def mail_message
       socket.puts "220"
-
-      line = socket.gets
-      process(line, socket)
-
-      line = socket.gets
-      until line.start_with?("DATA")
+      while (line = socket.gets)
         process(line, socket)
-        line = socket.gets
       end
-      process(line, socket)
       socket.close
-
       Mail.new(mail[:body].join)
     end
 
@@ -34,12 +26,17 @@ module Minbox
       when /^MAIL FROM/i then mail_from(line, socket)
       when /^RCPT TO/i then rcpt_to(line, socket)
       when /^DATA/i then data(line, socket)
+      when /^QUIT/i then quit(line, socket)
       else
         puts "***" * 10
         puts line.inspect
         puts "***" * 10
         socket.puts('502 Invalid/unsupported command')
       end
+    end
+
+    def quit(line, socket)
+      socket.puts "221 Bye"
     end
 
     def data(line, socket)
@@ -50,7 +47,7 @@ module Minbox
         line = socket.gets
       end
       socket.puts "250 OK"
-      socket.puts "221 Bye"
+      quit(line, socket)
     end
 
     def rcpt_to(line, socket)
