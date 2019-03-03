@@ -41,7 +41,7 @@ module Minbox
     def data(line)
       socket.puts "354 End data with <CR><LF>.<CR><LF>"
       line = socket.gets
-      until line.match(/^\.\r\n$/)
+      until line.nil? || line.match(/^\.\r\n$/)
         @body << line
         line = socket.gets
       end
