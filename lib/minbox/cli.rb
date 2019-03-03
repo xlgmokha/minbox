@@ -36,23 +36,6 @@ module Minbox
       def version
         say Minbox::VERSION
       end
-
-      private
-
-      def publishers_for(output)
-        publisher = Publisher.new
-        output.each do |x|
-          case x
-          when 'stdout'
-            publisher.add(LogPublisher.new)
-          when 'redis'
-            publisher.add(RedisPublisher.new)
-          when 'file'
-            publisher.add(FilePublisher.new)
-          end
-        end
-        publisher
-      end
     end
   end
 end

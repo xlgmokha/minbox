@@ -81,11 +81,14 @@ module Minbox
     end
 
     def write(message)
+      logger.debug message
       socket.puts message
     end
 
     def read
-      socket.gets
+      line = socket.gets
+      logger.debug line
+      line
     end
 
     def close
