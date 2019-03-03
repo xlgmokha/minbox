@@ -10,17 +10,23 @@ module Minbox
 
     def listen!
       logger.debug("Starting server on port #{port}...")
-      server = TCPServer.new(port.to_i)
+      @server = TCPServer.new(port.to_i)
       logger.debug("Server started!")
+
       loop do
-        yield handle(server.accept)
+        yield handle(@server.accept)
       rescue StandardError => error
         logger.error(error)
       end
     end
 
     def handle(socket)
+      logger.debug("client connected: #{socket.inspect}")
       Client.new(host, socket).mail_message
+    end
+
+    def shutdown!
+      @server&.close
     end
   end
 end
