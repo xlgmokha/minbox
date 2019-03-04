@@ -21,6 +21,8 @@ module Minbox
         when /^STARTTLS/i then start_tls
         when /^RSET/i then reset
         when /^NOOP/i then noop
+        when /^AUTH PLAIN/i then auth_plain(line)
+        when /^AUTH LOGIN/i then auth_login(line)
         else
           logger.error(line)
           write '502 Invalid/unsupported command'
@@ -78,14 +80,44 @@ module Minbox
       write '250 OK'
     end
 
+    def auth_plain(line)
+      data = line.gsub(/AUTH PLAIN ?/i, '')
+      if data.strip == ''
+        write '334'
+        data = read
+      end
+      parts = Base64.decode64(data).split("\0")
+      username, password = parts[-2], parts[-1]
+      logger.debug("#{username}:#{password}")
+      return write '535 Authenticated failed - protocol error' unless username && password
+      write "235 2.7.0 Authentication successful"
+    end
+
+    def auth_login(line)
+      username = line.gsub!(/AUTH LOGIN ?/i, '')
+      if username.strip == ''
+        write '334 VXNlcm5hbWU6'
+        username = read
+        write '334 UGFzc3dvcmQ6'
+      else
+        write '334 UGFzc3dvcmQ6'
+        password = Base64.decode64(read)
+        logger.debug("#{username}:#{password}")
+
+        return write '535 Authenticated failed - protocol error' unless username && password
+        write "235 2.7.0 Authentication successful"
+      end
+    end
+
     def write(message)
-      logger.debug message.inspect
+      #message = "#{message}\r\n"
+      logger.debug("S: #{message.inspect}")
       socket.puts message
     end
 
     def read
       line = socket.gets
-      logger.debug line.inspect
+      logger.debug("C: #{line.inspect}")
       line
     end
 

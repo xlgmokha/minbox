@@ -1,5 +1,6 @@
-require 'socket'
+require 'base64'
 require 'logger'
+require 'socket'
 
 require "minbox/core"
 require "minbox/publisher"
