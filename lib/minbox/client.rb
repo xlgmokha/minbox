@@ -102,12 +102,12 @@ module Minbox
         write '334 UGFzc3dvcmQ6'
       else
         write '334 UGFzc3dvcmQ6'
-        password = Base64.decode64(read)
-        logger.debug("#{username}:#{password}")
-
-        return write '535 Authenticated failed - protocol error' unless username && password
-        write "235 2.7.0 Authentication successful"
       end
+      password = Base64.decode64(read)
+      logger.debug("#{username}:#{password}")
+
+      return write '535 Authenticated failed - protocol error' unless username && password
+      write "235 2.7.0 Authentication successful"
     end
 
     def write(message)

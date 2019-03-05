@@ -38,6 +38,33 @@ RSpec.describe Minbox::Server do
 
         specify { expect(result).to eql(n) }
       end
+
+      context "with plain authentication" do
+        let(:result) do
+          Net::SMTP.start(host, port, 'mail.from.domain', 'username', 'password', :plain) do |smtp|
+            smtp.send_message(create_mail.to_s, Faker::Internet.email, Faker::Internet.email)
+          end
+        end
+
+        specify { expect(result).to be_success }
+        specify { expect(result.status.to_i).to eql(250) }
+      end
+
+      context "with login authentication" do
+        let(:result) do
+          Net::SMTP.start(host, port, 'mail.from.domain', 'username', 'password', :login) do |smtp|
+            smtp.send_message(create_mail.to_s, Faker::Internet.email, Faker::Internet.email)
+          end
+        end
+
+        specify { expect(result).to be_success }
+        specify { expect(result.status.to_i).to eql(250) }
+      end
+
+      context "with a text/html part" do
+
+      end
+
     end
   end
 end
