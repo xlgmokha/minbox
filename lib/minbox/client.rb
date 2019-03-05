@@ -60,7 +60,7 @@ module Minbox
     def ehlo(line)
       _ehlo, _client_domain = line.split(" ")
       write "250-#{host}"
-      write "250 AUTH PLAIN LOGIN"
+      #write "250 AUTH PLAIN LOGIN"
       write "250 OK"
     end
 

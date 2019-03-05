@@ -1,5 +1,8 @@
 require "bundler/setup"
 require "minbox"
+require 'net/smtp'
+require 'mail'
+require 'faker'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
