@@ -7,11 +7,12 @@ RSpec.describe Minbox::Server do
 
     context "when handling a simple client" do
       def create_mail(to: Faker::Internet.email, from: Faker::Internet.email)
-        Mail.new do
-          from from
-          to to
-          subject 'test message'
-          body "#{Time.now} This is a test message."
+        Mail.new do |x|
+          x.from from
+          x.to to
+          x.subject 'test message'
+          x.body "#{Time.now} This is a test message."
+          yield x if block_given?
         end
       end
 
@@ -61,10 +62,19 @@ RSpec.describe Minbox::Server do
         specify { expect(result.status.to_i).to eql(250) }
       end
 
-      context "with a text/html part" do
+      context "with attachment" do
+        let(:result) do
+          mail = create_mail do |x|
+            x.add_file __FILE__
+          end
+          Net::SMTP.start(host, port, 'mail.from.domain', 'username', 'password', :login) do |smtp|
+            smtp.send_message(mail.to_s, Faker::Internet.email, Faker::Internet.email)
+          end
+        end
 
+        specify { expect(result).to be_success }
+        specify { expect(result.status.to_i).to eql(250) }
       end
-
     end
   end
 end
