@@ -75,6 +75,25 @@ RSpec.describe Minbox::Server do
         specify { expect(result).to be_success }
         specify { expect(result.status.to_i).to eql(250) }
       end
+
+      context "with html part" do
+        let(:result) do
+          mail = create_mail do |x|
+            x.text_part do
+              body 'this is plain text'
+            end
+            x.html_part do
+              body '<h1>this is html</h1>'
+            end
+          end
+          Net::SMTP.start(host, port) do |smtp|
+            smtp.send_message(mail.to_s, Faker::Internet.email, Faker::Internet.email)
+          end
+        end
+
+        specify { expect(result).to be_success }
+        specify { expect(result.status.to_i).to eql(250) }
+      end
     end
   end
 end
