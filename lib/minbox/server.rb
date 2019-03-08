@@ -10,7 +10,7 @@ module Minbox
 
     def listen!(&block)
       logger.debug("Starting server on port #{port}...")
-      @server = TCPServer.new(port.to_i)
+      @server = @original_server = TCPServer.new(port.to_i)
       logger.debug("Server started!")
 
       loop do
