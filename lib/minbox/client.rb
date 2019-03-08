@@ -8,7 +8,7 @@ module Minbox
       @socket = socket
     end
 
-    def mail_message(&block)
+    def handle(&block)
       write "220"
       while connected? && (line = read)
         case line
@@ -62,6 +62,7 @@ module Minbox
       _ehlo, _client_domain = line.split(" ")
       write "250-#{host}"
       #write "250 AUTH PLAIN LOGIN"
+      write "250-ENHANCEDSTATUSCODES"
       write "250 STARTTLS"
       write "250 OK"
     end
