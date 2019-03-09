@@ -41,7 +41,7 @@ module Minbox
           ssl_context = OpenSSL::SSL::SSLContext.new
           ssl_context.cert = certificate_for(key)
           ssl_context.key = key
-          ssl_context.ssl_version = :SSLv23
+          ssl_context.ssl_version = :TLSv1_2
           ssl_context
         end
     end
