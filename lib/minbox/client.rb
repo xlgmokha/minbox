@@ -62,7 +62,8 @@ module Minbox
 
     def ehlo(line)
       _ehlo, _client_domain = line.split(" ")
-      write "250-#{server.host}"
+      write "250-#{server.host} offers a warm hug of welcome"
+      write "250-8BITMIME"
       write "250-ENHANCEDSTATUSCODES"
       #write "250-STARTTLS"# if server.tls?
       #write "250 AUTH PLAIN LOGIN"
