@@ -9,10 +9,14 @@ module Minbox
       @tls = tls
     end
 
+    def tls?
+      @tls
+    end
+
     def listen!(&block)
       logger.debug("Starting server on port #{port}...")
       @server = TCPServer.new(port.to_i)
-      @server = upgrade(@server) if @tls
+      @server = upgrade(@server) if tls?
       logger.debug("Server started!")
 
       loop do
@@ -24,7 +28,7 @@ module Minbox
 
     def handle(socket, &block)
       logger.debug("client connected: #{socket.inspect}")
-      Client.new(host, socket, logger, @tls).handle(&block)
+      Client.new(self, socket, logger).handle(&block)
     end
 
     def shutdown!
@@ -66,11 +70,14 @@ module Minbox
     end
 
     def ssl_context(key = OpenSSL::PKey::RSA.new(2048))
-      ssl_context = OpenSSL::SSL::SSLContext.new
-      ssl_context.cert = certificate_for(key)
-      ssl_context.key = key
-      ssl_context.ssl_version = :SSLv23
-      ssl_context
+      @ssl_context ||=
+        begin
+          ssl_context = OpenSSL::SSL::SSLContext.new
+          ssl_context.cert = certificate_for(key)
+          ssl_context.key = key
+          ssl_context.ssl_version = :SSLv23
+          ssl_context
+        end
     end
   end
 end

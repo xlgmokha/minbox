@@ -1,12 +1,11 @@
 module Minbox
   class Client
-    attr_reader :host, :socket, :logger
+    attr_reader :server, :socket, :logger
 
-    def initialize(host, socket, logger, tls = false)
-      @host = host
+    def initialize(server, socket, logger)
+      @server = server
       @logger = logger
       @socket = socket
-      @tls = tls
     end
 
     def handle(&block)
@@ -63,20 +62,28 @@ module Minbox
 
     def ehlo(line)
       _ehlo, _client_domain = line.split(" ")
-      write "250-#{host}"
+      write "250-#{server.host}"
       #write "250 AUTH PLAIN LOGIN"
       write "250-ENHANCEDSTATUSCODES"
-      write "250 STARTTLS" if @tls
+      write "250 STARTTLS" if server.tls?
       write "250 OK"
     end
 
     def helo(line)
       _ehlo, _client_domain = line.split(" ")
-      write "250 #{host}"
+      write "250 #{server.host}"
     end
 
     def start_tls
       write "220 Ready to start TLS"
+
+      @original_socket = @socket
+      @socket = OpenSSL::SSL::SSLSocket.new(@original_socket, server.ssl_context)
+      @socket.sync_close = true
+      #begin
+      puts @socket.accept.inspect
+      #rescue OpenSSL::SSL::SSLError => e
+      #end
     end
 
     def reset
