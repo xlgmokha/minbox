@@ -94,6 +94,20 @@ RSpec.describe Minbox::Server do
         specify { expect(result).to be_success }
         specify { expect(result.status.to_i).to eql(250) }
       end
+
+      context "when upgrading to tls" do
+        let(:result) do
+          mail = create_mail
+          Net::SMTP.start(host, port) do |smtp|
+            #smtp.enable_starttls
+            smtp.enable_tls
+            smtp.send_message(mail.to_s, Faker::Internet.email, Faker::Internet.email)
+          end
+        end
+
+        specify { expect(result).to be_success }
+        specify { expect(result.status.to_i).to eql(250) }
+      end
     end
   end
 end
