@@ -2,16 +2,17 @@ module Minbox
   class Server
     attr_reader :host, :port, :logger
 
-    def initialize(host = 'localhost', port = 25, logger = Minbox.logger)
+    def initialize(host = 'localhost', port = 25, tls = false, logger = Minbox.logger)
       @host = host
       @port = port
       @logger = logger
+      @tls = tls
     end
 
     def listen!(&block)
       logger.debug("Starting server on port #{port}...")
       @server = TCPServer.new(port.to_i)
-      #@server = upgrade(@server)
+      @server = upgrade(@server) if @tls
       logger.debug("Server started!")
 
       loop do
@@ -23,7 +24,7 @@ module Minbox
 
     def handle(socket, &block)
       logger.debug("client connected: #{socket.inspect}")
-      Client.new(host, socket, logger).handle(&block)
+      Client.new(host, socket, logger, @tls).handle(&block)
     end
 
     def shutdown!
@@ -69,9 +70,6 @@ module Minbox
       ssl_context.cert = certificate_for(key)
       ssl_context.key = key
       ssl_context.ssl_version = :SSLv23
-      ssl_context.renegotiation_cb = lambda do |ssl|
-        puts "Negotiating..."
-      end
       ssl_context
     end
   end

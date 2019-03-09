@@ -26,10 +26,11 @@ module Minbox
       end
 
       method_option :output, type: :array, default: ['stdout']
+      method_option :tls, type: :boolean, default: false
       desc 'server <HOST> <PORT>', 'SMTP server'
       def server(host = 'localhost', port = '25')
         publisher = Publisher.from(options[:output])
-        Server.new(host, port).listen! do |mail|
+        Server.new(host, port, options[:tls]).listen! do |mail|
           publisher.publish(mail)
         end
       end

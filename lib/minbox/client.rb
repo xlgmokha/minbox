@@ -2,10 +2,11 @@ module Minbox
   class Client
     attr_reader :host, :socket, :logger
 
-    def initialize(host, socket, logger)
+    def initialize(host, socket, logger, tls = false)
       @host = host
       @logger = logger
       @socket = socket
+      @tls = tls
     end
 
     def handle(&block)
@@ -65,7 +66,7 @@ module Minbox
       write "250-#{host}"
       #write "250 AUTH PLAIN LOGIN"
       write "250-ENHANCEDSTATUSCODES"
-      #write "250 STARTTLS"
+      write "250 STARTTLS" if @tls
       write "250 OK"
     end
 

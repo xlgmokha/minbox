@@ -68,6 +68,7 @@ RSpec.describe Minbox::Server do
             x.add_file __FILE__
           end
           Net::SMTP.start(host, port, 'mail.from.domain', 'username', 'password', :login) do |smtp|
+            smtp.debug_output= STDOUT
             smtp.send_message(mail.to_s, Faker::Internet.email, Faker::Internet.email)
           end
         end
@@ -98,9 +99,9 @@ RSpec.describe Minbox::Server do
       context "when upgrading to tls" do
         let(:result) do
           mail = create_mail
-          Net::SMTP.start(host, port) do |smtp|
-            #smtp.enable_starttls
-            smtp.enable_tls
+          smtp = Net::SMTP.new(host, port)
+          smtp.enable_starttls
+          smtp.start do |smtp|
             smtp.send_message(mail.to_s, Faker::Internet.email, Faker::Internet.email)
           end
         end
