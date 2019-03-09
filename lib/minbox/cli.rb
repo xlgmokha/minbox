@@ -1,8 +1,9 @@
-require 'thor'
 require 'mail'
+require 'net/smtp'
+require 'openssl'
+require 'thor'
 
 require 'minbox'
-require 'minbox/secure_server'
 
 module Minbox
   module Cli
@@ -17,10 +18,8 @@ module Minbox
           subject 'test message'
           body "#{Time.now} This is a test message."
         end
-        require 'net/smtp'
-        smtp = Net::SMTP.new(host, port)
-        smtp.enable_starttls
-        smtp.start do |smtp|
+        Net::SMTP.start(host, port) do |smtp|
+          #smtp.enable_starttls
           smtp.send_message(mail.to_s, 'me+1@example.org', 'them+1@example.com')
           smtp.send_message(mail.to_s, 'me+2@example.org', 'them+2@example.com')
         end
@@ -32,17 +31,6 @@ module Minbox
         publisher = Publisher.from(options[:output])
         Server.new(host, port).listen! do |mail|
           publisher.publish(mail)
-        end
-      end
-
-      method_option :output, type: :array, default: ['stdout']
-      desc 'secure_server <HOST> <PORT>', 'SMTP secure server'
-      def secure_server(host = 'localhost', port = '25')
-        # publisher = Publisher.from(options[:output])
-        SecureServer.new(port).listen do |socket|
-          puts "HELLLLLLLOOOOO"
-          read_line = socket.gets
-          puts read_line
         end
       end
 

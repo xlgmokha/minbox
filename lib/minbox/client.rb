@@ -28,6 +28,9 @@ module Minbox
           write '502 Invalid/unsupported command'
         end
       end
+    rescue Errno::ECONNRESET, Errno::EPIPE => error
+      logger.error(error)
+      close
     end
 
     private
@@ -35,7 +38,6 @@ module Minbox
     def quit
       write "221 Bye"
       close
-      @server.downgrade
     end
 
     def data(line, &block)
@@ -47,7 +49,7 @@ module Minbox
         line = read
       end
       write "250 OK"
-      block.call(Mail.new(body.join))
+      block.call(Mail.new(body.join)) unless body.empty?
     end
 
     def rcpt_to(line)
@@ -63,7 +65,7 @@ module Minbox
       write "250-#{host}"
       #write "250 AUTH PLAIN LOGIN"
       write "250-ENHANCEDSTATUSCODES"
-      write "250 STARTTLS"
+      #write "250 STARTTLS"
       write "250 OK"
     end
 
@@ -74,15 +76,6 @@ module Minbox
 
     def start_tls
       write "220 Ready to start TLS"
-      ssl_context = OpenSSL::SSL::SSLContext.new()
-      ssl_context.cert = OpenSSL::X509::Certificate.new(File.open("server.pem"))
-      ssl_context.key = OpenSSL::PKey::RSA.new(File.open("server.pem"))
-      ssl_context.ssl_version = :SSLv23
-      ssl_socket = OpenSSL::SSL::SSLSocket.new(@socket, ssl_context)
-      # ssl_socket.sync_close = true
-      # ssl_socket.connect
-      @socket = ssl_socket
-      # write "502 TLS not available"
     end
 
     def reset
