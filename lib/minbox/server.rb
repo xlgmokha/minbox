@@ -35,6 +35,17 @@ module Minbox
       @server&.close
     end
 
+    def ssl_context(key = OpenSSL::PKey::RSA.new(2048))
+      @ssl_context ||=
+        begin
+          ssl_context = OpenSSL::SSL::SSLContext.new
+          ssl_context.cert = certificate_for(key)
+          ssl_context.key = key
+          ssl_context.ssl_version = :SSLv23
+          ssl_context
+        end
+    end
+
     private
 
     def upgrade(tcp_server)
@@ -67,17 +78,6 @@ module Minbox
       certificate.add_extension(
         extensions.create_extension('keyUsage', 'keyEncipherment,digitalSignature', true)
       )
-    end
-
-    def ssl_context(key = OpenSSL::PKey::RSA.new(2048))
-      @ssl_context ||=
-        begin
-          ssl_context = OpenSSL::SSL::SSLContext.new
-          ssl_context.cert = certificate_for(key)
-          ssl_context.key = key
-          ssl_context.ssl_version = :SSLv23
-          ssl_context
-        end
     end
   end
 end

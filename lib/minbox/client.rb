@@ -9,7 +9,7 @@ module Minbox
     end
 
     def handle(&block)
-      write "220"
+      write "220 #{server.host} ESMTP"
       while connected? && (line = read)
         case line
         when /^EHLO/i then ehlo(line)
@@ -63,9 +63,9 @@ module Minbox
     def ehlo(line)
       _ehlo, _client_domain = line.split(" ")
       write "250-#{server.host}"
-      #write "250 AUTH PLAIN LOGIN"
       write "250-ENHANCEDSTATUSCODES"
-      write "250 STARTTLS" if server.tls?
+      #write "250-STARTTLS"# if server.tls?
+      #write "250 AUTH PLAIN LOGIN"
       write "250 OK"
     end
 
@@ -80,10 +80,7 @@ module Minbox
       @original_socket = @socket
       @socket = OpenSSL::SSL::SSLSocket.new(@original_socket, server.ssl_context)
       @socket.sync_close = true
-      #begin
       puts @socket.accept.inspect
-      #rescue OpenSSL::SSL::SSLError => e
-      #end
     end
 
     def reset

@@ -100,7 +100,7 @@ RSpec.describe Minbox::Server do
         let(:result) do
           mail = create_mail
           smtp = Net::SMTP.new(host, port)
-          smtp.enable_starttls
+          #smtp.enable_autostarttls
           smtp.start do |smtp|
             smtp.send_message(mail.to_s, Faker::Internet.email, Faker::Internet.email)
           end
