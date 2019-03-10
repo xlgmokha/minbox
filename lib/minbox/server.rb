@@ -1,12 +1,13 @@
 module Minbox
   class Server
-    attr_reader :host, :port, :logger
+    attr_reader :host, :port, :logger, :key
 
     def initialize(host = 'localhost', port = 25, tls = false, logger = Minbox.logger)
       @host = host
       @port = port
       @logger = logger
       @tls = tls
+      @key = OpenSSL::PKey::RSA.new(2048)
     end
 
     def tls?
@@ -35,7 +36,7 @@ module Minbox
       @server&.close
     end
 
-    def ssl_context(key = OpenSSL::PKey::RSA.new(2048))
+    def ssl_context
       @ssl_context ||=
         begin
           ssl_context = OpenSSL::SSL::SSLContext.new
