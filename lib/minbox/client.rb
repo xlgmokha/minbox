@@ -28,6 +28,7 @@ module Minbox
           write '502 Invalid/unsupported command'
         end
       end
+      close
     rescue Errno::ECONNRESET, Errno::EPIPE => error
       logger.error(error)
       close
@@ -78,10 +79,9 @@ module Minbox
     def start_tls
       write "220 Ready to start TLS"
 
-      @original_socket = @socket
-      @socket = OpenSSL::SSL::SSLSocket.new(@original_socket, server.ssl_context)
-      @socket.sync_close = true
-      puts @socket.accept.inspect
+      socket = OpenSSL::SSL::SSLSocket.new(@socket, server.ssl_context)
+      socket.sync_close = true
+      @socket = socket.accept
     end
 
     def reset
