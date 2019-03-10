@@ -1,5 +1,7 @@
 #!/bin/sh
 
+rm -fr pkg/
+mkdir -p pkg/
 cp Dockerfile pkg/
 docker pull ruby:2.6-alpine
 docker image build \
