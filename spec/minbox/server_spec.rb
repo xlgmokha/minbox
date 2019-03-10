@@ -98,16 +98,11 @@ RSpec.describe Minbox::Server do
 
       context "when upgrading to tls" do
         let(:result) do
-          mail = create_mail
-          smtp = Net::SMTP.new(host, port)
-          smtp.enable_starttls_auto
-          smtp.start do |smtp|
-            smtp.send_message(mail.to_s, Faker::Internet.email, Faker::Internet.email)
-          end
+          `(echo 'QUIT'; sleep 1) | openssl s_client -connect #{host}:#{port} -starttls smtp 2>&1`
         end
 
-        specify { expect(result).to be_success }
-        specify { expect(result.status.to_i).to eql(250) }
+        specify { expect(result).to end_with("DONE\n") }
+        specify { expect(result).to include("250 OK") }
       end
     end
   end
