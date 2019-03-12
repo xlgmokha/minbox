@@ -16,12 +16,12 @@ module Minbox
         case line
         when /^EHLO/i then ehlo(line)
         when /^HELO/i then helo(line)
-        when /^MAIL FROM/i then mail_from(line)
-        when /^RCPT TO/i then rcpt_to(line)
+        when /^MAIL FROM/i then noop
+        when /^RCPT TO/i then noop
         when /^DATA/i then data(&block)
         when /^QUIT/i then quit
         when /^STARTTLS/i then start_tls
-        when /^RSET/i then reset
+        when /^RSET/i then noop
         when /^NOOP/i then noop
         when /^AUTH PLAIN/i then auth_plain(line)
         when /^AUTH LOGIN/i then auth_login(line)
@@ -55,14 +55,6 @@ module Minbox
       yield(Mail.new(body.join)) unless body.empty?
     end
 
-    def rcpt_to(_line)
-      write '250 OK'
-    end
-
-    def mail_from(_line)
-      write '250 OK'
-    end
-
     def ehlo(line)
       _ehlo, _client_domain = line.split(' ')
       write "250-#{server.host} offers a warm hug of welcome"
@@ -84,10 +76,6 @@ module Minbox
       socket = OpenSSL::SSL::SSLSocket.new(@socket, server.ssl_context)
       socket.sync_close = true
       @socket = socket.accept
-    end
-
-    def reset
-      write '250 OK'
     end
 
     def noop
