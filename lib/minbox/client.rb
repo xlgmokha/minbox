@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Minbox
   class Client
     attr_reader :server, :socket, :logger
@@ -37,47 +39,47 @@ module Minbox
     private
 
     def quit
-      write "221 Bye"
+      write '221 Bye'
       close
     end
 
-    def data(line, &block)
-      write "354 End data with <CR><LF>.<CR><LF>"
+    def data(line)
+      write '354 End data with <CR><LF>.<CR><LF>'
       body = []
       line = read
       until line.nil? || line.match(/^\.\r\n$/)
         body << line
         line = read
       end
-      write "250 OK"
-      block.call(Mail.new(body.join)) unless body.empty?
+      write '250 OK'
+      yield(Mail.new(body.join)) unless body.empty?
     end
 
-    def rcpt_to(line)
-      write "250 OK"
+    def rcpt_to(_line)
+      write '250 OK'
     end
 
-    def mail_from(line)
-      write "250 OK"
+    def mail_from(_line)
+      write '250 OK'
     end
 
     def ehlo(line)
-      _ehlo, _client_domain = line.split(" ")
+      _ehlo, _client_domain = line.split(' ')
       write "250-#{server.host} offers a warm hug of welcome"
-      write "250-8BITMIME"
-      write "250-ENHANCEDSTATUSCODES"
-      #write "250 STARTTLS"
-      write "250-AUTH PLAIN LOGIN"
-      write "250 OK"
+      write '250-8BITMIME'
+      write '250-ENHANCEDSTATUSCODES'
+      # write "250 STARTTLS"
+      write '250-AUTH PLAIN LOGIN'
+      write '250 OK'
     end
 
     def helo(line)
-      _ehlo, _client_domain = line.split(" ")
+      _ehlo, _client_domain = line.split(' ')
       write "250 #{server.host}"
     end
 
     def start_tls
-      write "220 Ready to start TLS"
+      write '220 Ready to start TLS'
 
       socket = OpenSSL::SSL::SSLSocket.new(@socket, server.ssl_context)
       socket.sync_close = true
@@ -99,10 +101,12 @@ module Minbox
         data = read
       end
       parts = Base64.decode64(data).split("\0")
-      username, password = parts[-2], parts[-1]
+      username = parts[-2]
+      password = parts[-1]
       logger.debug("#{username}:#{password}")
       return write '535 Authenticated failed - protocol error' unless username && password
-      write "235 2.7.0 Authentication successful"
+
+      write '235 2.7.0 Authentication successful'
     end
 
     def auth_login(line)
@@ -118,7 +122,8 @@ module Minbox
       logger.debug("#{username}:#{password}")
 
       return write '535 Authenticated failed - protocol error' unless username && password
-      write "235 2.7.0 Authentication successful"
+
+      write '235 2.7.0 Authentication successful'
     end
 
     def write(message)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'redis'
 
 module Minbox
@@ -51,7 +53,7 @@ module Minbox
     end
 
     def publish(mail)
-      @redis.publish("minbox", mail.to_s)
+      @redis.publish('minbox', mail.to_s)
     end
   end
 
@@ -59,7 +61,7 @@ module Minbox
     attr_reader :dir
 
     def initialize(dir = Dir.pwd)
-      @dir = File.join(dir, "tmp")
+      @dir = File.join(dir, 'tmp')
       FileUtils.mkdir_p(@dir)
     end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Minbox
   def self.logger
     @logger ||= Logger.new(STDOUT)

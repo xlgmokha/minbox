@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 module Minbox
   class Server
+    SUBJECT = '/C=CA/ST=AB/L=Calgary/O=minbox/OU=development/CN=minbox'
     attr_reader :host, :port, :logger, :key
 
     def initialize(host = 'localhost', port = 25, tls = false, logger = Minbox.logger)
@@ -18,7 +21,7 @@ module Minbox
       logger.debug("Starting server on port #{port}...")
       @server = TCPServer.new(port.to_i)
       @server = upgrade(@server) if tls?
-      logger.debug("Server started!")
+      logger.debug('Server started!')
 
       loop do
         handle(@server.accept, &block)
@@ -55,9 +58,8 @@ module Minbox
       server
     end
 
-    def certificate_for(private_key)
+    def certificate_for(private_key, subject = SUBJECT)
       certificate = OpenSSL::X509::Certificate.new
-      subject = '/C=CA/ST=AB/L=Calgary/O=minbox/OU=development/CN=minbox'
       certificate.subject = certificate.issuer = OpenSSL::X509::Name.parse(subject)
       certificate.not_before = Time.now
       certificate.not_after = certificate.not_before + 30 * 24 * 60 * 60 # 30 days
@@ -71,14 +73,14 @@ module Minbox
 
     def apply_ski_extension_to(certificate)
       extensions = OpenSSL::X509::ExtensionFactory.new
-      extensions.subject_certificate = certificate
-      extensions.issuer_certificate = certificate
-      certificate.add_extension(
-        extensions.create_extension('subjectKeyIdentifier', 'hash', false)
-      )
-      certificate.add_extension(
-        extensions.create_extension('keyUsage', 'keyEncipherment,digitalSignature', true)
-      )
+      extensions.subject_certificate =
+        extensions.issuer_certificate = certificate
+      [
+        ['subjectKeyIdentifier', 'hash', false],
+        ['keyUsage', 'keyEncipherment,digitalSignature', true],
+      ].each do |x|
+        certificate.add_extension(extensions.create_extension(x[0], x[1], x[2]))
+      end
     end
   end
 end
