@@ -3,14 +3,15 @@
 module Minbox
   class Server
     SUBJECT = '/C=CA/ST=AB/L=Calgary/O=minbox/OU=development/CN=minbox'
-    attr_reader :host, :port, :logger, :key
+    attr_reader :host, :logger, :key, :server
 
     def initialize(host = 'localhost', port = 25, tls = false, logger = Minbox.logger)
       @host = host
-      @port = port
       @logger = logger
       @tls = tls
       @key = OpenSSL::PKey::RSA.new(2048)
+      logger.debug("Starting server on port #{port}...")
+      @server = TCPServer.new(port.to_i)
     end
 
     def tls?
@@ -18,13 +19,11 @@ module Minbox
     end
 
     def listen!(&block)
-      logger.debug("Starting server on port #{port}...")
-      @server = TCPServer.new(port.to_i)
       @server = upgrade(@server) if tls?
       logger.debug('Server started!')
 
       loop do
-        handle(@server.accept, &block)
+        handle(server.accept, &block)
       rescue StandardError => error
         logger.error(error)
       end
@@ -36,7 +35,7 @@ module Minbox
     end
 
     def shutdown!
-      @server&.close
+      server&.close
     end
 
     def ssl_context

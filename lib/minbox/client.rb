@@ -18,7 +18,7 @@ module Minbox
         when /^HELO/i then helo(line)
         when /^MAIL FROM/i then mail_from(line)
         when /^RCPT TO/i then rcpt_to(line)
-        when /^DATA/i then data(line, &block)
+        when /^DATA/i then data(&block)
         when /^QUIT/i then quit
         when /^STARTTLS/i then start_tls
         when /^RSET/i then reset
@@ -43,7 +43,7 @@ module Minbox
       close
     end
 
-    def data(line)
+    def data
       write '354 End data with <CR><LF>.<CR><LF>'
       body = []
       line = read
@@ -103,10 +103,7 @@ module Minbox
       parts = Base64.decode64(data).split("\0")
       username = parts[-2]
       password = parts[-1]
-      logger.debug("#{username}:#{password}")
-      return write '535 Authenticated failed - protocol error' unless username && password
-
-      write '235 2.7.0 Authentication successful'
+      authenticate(username, password)
     end
 
     def auth_login(line)
@@ -114,16 +111,10 @@ module Minbox
       if username.strip == ''
         write '334 VXNlcm5hbWU6'
         username = read
-        write '334 UGFzc3dvcmQ6'
-      else
-        write '334 UGFzc3dvcmQ6'
       end
+      write '334 UGFzc3dvcmQ6'
       password = Base64.decode64(read)
-      logger.debug("#{username}:#{password}")
-
-      return write '535 Authenticated failed - protocol error' unless username && password
-
-      write '235 2.7.0 Authentication successful'
+      authenticate(username, password)
     end
 
     def write(message)
@@ -145,6 +136,13 @@ module Minbox
 
     def connected?
       @socket
+    end
+
+    def authenticate(username, password)
+      logger.debug("#{username}:#{password}")
+      return write '535 Authenticated failed - protocol error' unless username && password
+
+      write '235 2.7.0 Authentication successful'
     end
   end
 end
