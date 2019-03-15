@@ -41,7 +41,7 @@ module Minbox
   end
 
   class Noop < Command
-    def run(client, line)
+    def run(client, _line)
       client.write '250 OK'
     end
   end
@@ -51,7 +51,7 @@ module Minbox
       super(/^QUIT/i)
     end
 
-    def run(client, line)
+    def run(client, _line)
       client.write '221 Bye'
       client.close
     end
@@ -62,7 +62,7 @@ module Minbox
       super(/^DATA/i)
     end
 
-    def run(client, line, &block)
+    def run(client, _line)
       client.write '354 End data with <CR><LF>.<CR><LF>'
       body = []
       line = client.read
@@ -71,7 +71,7 @@ module Minbox
         line = client.read
       end
       client.write '250 OK'
-      block.call(Mail.new(body.join)) unless body.empty?
+      yield(Mail.new(body.join)) unless body.empty?
     end
   end
 
@@ -80,7 +80,7 @@ module Minbox
       super(/^STARTTLS/i)
     end
 
-    def run(client, line)
+    def run(client, _line)
       client.write '220 Ready to start TLS'
       client.secure_socket!
     end
@@ -122,7 +122,7 @@ module Minbox
   end
 
   class Unsupported
-    def matches?(line)
+    def matches?(_line)
       true
     end
 
@@ -133,32 +133,31 @@ module Minbox
   end
 
   class Client
+    COMMANDS = [
+      Ehlo.new,
+      Helo.new,
+      Noop.new(/^MAIL FROM/i),
+      Noop.new(/^RCPT TO/i),
+      Noop.new(/^RSET/i),
+      Noop.new(/^NOOP/i),
+      Quit.new,
+      Data.new,
+      StartTls.new,
+      AuthPlain.new,
+      AuthLogin.new
+    ].freeze
     attr_reader :server, :socket, :logger
-    attr_reader :commands
 
     def initialize(server, socket, logger)
       @server = server
       @logger = logger
       @socket = socket
-      @commands = [
-        Ehlo.new,
-        Helo.new,
-        Noop.new(/^MAIL FROM/i),
-        Noop.new(/^RCPT TO/i),
-        Noop.new(/^RSET/i),
-        Noop.new(/^NOOP/i),
-        Quit.new,
-        Data.new,
-        StartTls.new,
-        AuthPlain.new,
-        AuthLogin.new
-      ]
     end
 
     def handle(&block)
       write "220 #{server.host} ESMTP"
       while connected? && (line = read)
-        command = commands.find { |x| x.matches?(line) } || Unsupported.new
+        command = COMMANDS.find { |x| x.matches?(line) } || Unsupported.new
         command.run(self, line, &block)
       end
       close

@@ -14,12 +14,7 @@ module Minbox
 
       desc 'client <HOST> <PORT>', 'SMTP client'
       def client(host = 'localhost', port = 25)
-        mail = Mail.new do
-          from 'Your Name <me@example.org>'
-          to 'Destination Address <them@example.com>'
-          subject 'test message'
-          body "#{Time.now} This is a test message."
-        end
+        mail = create_mail
         Net::SMTP.start(host, port) do |smtp|
           smtp.debug_output = Minbox.logger
           smtp.send_message(mail.to_s, 'me+1@example.org', 'them+1@example.com')
@@ -40,6 +35,17 @@ module Minbox
       desc 'version', 'Display the current version'
       def version
         say Minbox::VERSION
+      end
+
+      private
+
+      def create_mail
+        Mail.new do
+          from 'Your Name <me@example.org>'
+          to 'Destination Address <them@example.com>'
+          subject 'test message'
+          body "#{Time.now} This is a test message."
+        end
       end
     end
   end
