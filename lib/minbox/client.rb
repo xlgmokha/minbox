@@ -100,7 +100,7 @@ module Minbox
       /^QUIT/i => Quit.new,
       /^RCPT TO/i => Noop.new,
       /^RSET/i => Noop.new,
-      /^STARTTLS/i => StartTls.new,
+      /^STARTTLS/i => StartTls.new
     )
     UNSUPPORTED = Unsupported.new
     attr_reader :server, :socket, :logger
