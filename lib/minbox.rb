@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 require 'base64'
+require 'concurrent'
 require 'hashie'
 require 'logger'
+require 'socket'
 require 'socket'
 
 require 'minbox/core'

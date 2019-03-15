@@ -12,6 +12,7 @@ module Minbox
       @key = OpenSSL::PKey::RSA.new(2048)
       logger.debug("Starting server on port #{port}...")
       @server = TCPServer.new(port.to_i)
+      @thread_pool = Concurrent::CachedThreadPool.new
     end
 
     def tls?
@@ -30,8 +31,10 @@ module Minbox
     end
 
     def handle(socket, &block)
-      logger.debug("client connected: #{socket.inspect}")
-      Client.new(self, socket, logger).handle(&block)
+      @thread_pool.post do
+        logger.debug("client connected: #{socket.inspect}")
+        Client.new(self, socket, logger).handle(&block)
+      end
     end
 
     def shutdown!

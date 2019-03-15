@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
-
 RSpec.describe Minbox::Server do
   describe '#handle' do
     let(:host) { 'localhost' }
