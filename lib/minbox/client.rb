@@ -1,34 +1,165 @@
 # frozen_string_literal: true
 
 module Minbox
+  class Command
+    attr_reader :regex
+
+    def initialize(regex)
+      @regex = regex
+    end
+
+    def matches?(line)
+      line.match?(regex)
+    end
+  end
+
+  class Ehlo < Command
+    def initialize
+      super(/^EHLO/i)
+    end
+
+    def run(client, line)
+      _ehlo, _client_domain = line.split(' ')
+      client.write "250-#{client.server.host} offers a warm hug of welcome"
+      client.write '250-8BITMIME'
+      client.write '250-ENHANCEDSTATUSCODES'
+      # client.write "250 STARTTLS"
+      client.write '250-AUTH PLAIN LOGIN'
+      client.write '250 OK'
+    end
+  end
+
+  class Helo < Command
+    def initialize
+      super(/^HELO/i)
+    end
+
+    def run(client, line)
+      _ehlo, _client_domain = line.split(' ')
+      client.write "250 #{client.server.host}"
+    end
+  end
+
+  class Noop < Command
+    def run(client, line)
+      client.write '250 OK'
+    end
+  end
+
+  class Quit < Command
+    def initialize
+      super(/^QUIT/i)
+    end
+
+    def run(client, line)
+      client.write '221 Bye'
+      client.close
+    end
+  end
+
+  class Data < Command
+    def initialize
+      super(/^DATA/i)
+    end
+
+    def run(client, line, &block)
+      client.write '354 End data with <CR><LF>.<CR><LF>'
+      body = []
+      line = client.read
+      until line.nil? || line.match(/^\.\r\n$/)
+        body << line
+        line = client.read
+      end
+      client.write '250 OK'
+      block.call(Mail.new(body.join)) unless body.empty?
+    end
+  end
+
+  class StartTls < Command
+    def initialize
+      super(/^STARTTLS/i)
+    end
+
+    def run(client, line)
+      client.write '220 Ready to start TLS'
+      client.secure_socket!
+    end
+  end
+
+  class AuthPlain < Command
+    def initialize
+      super(/^AUTH PLAIN/i)
+    end
+
+    def run(client, line)
+      data = line.gsub(/AUTH PLAIN ?/i, '')
+      if data.strip == ''
+        client.write '334'
+        data = client.read
+      end
+      parts = Base64.decode64(data).split("\0")
+      username = parts[-2]
+      password = parts[-1]
+      client.authenticate(username, password)
+    end
+  end
+
+  class AuthLogin < Command
+    def initialize
+      super(/^AUTH LOGIN/i)
+    end
+
+    def run(client, line)
+      username = line.gsub!(/AUTH LOGIN ?/i, '')
+      if username.strip == ''
+        client.write '334 VXNlcm5hbWU6'
+        username = client.read
+      end
+      client.write '334 UGFzc3dvcmQ6'
+      password = Base64.decode64(client.read)
+      client.authenticate(username, password)
+    end
+  end
+
+  class Unsupported
+    def matches?(line)
+      true
+    end
+
+    def run(client, line)
+      client.logger.error(line)
+      client.write '502 Invalid/unsupported command'
+    end
+  end
+
   class Client
     attr_reader :server, :socket, :logger
+    attr_reader :commands
 
     def initialize(server, socket, logger)
       @server = server
       @logger = logger
       @socket = socket
+      @commands = [
+        Ehlo.new,
+        Helo.new,
+        Noop.new(/^MAIL FROM/i),
+        Noop.new(/^RCPT TO/i),
+        Noop.new(/^RSET/i),
+        Noop.new(/^NOOP/i),
+        Quit.new,
+        Data.new,
+        StartTls.new,
+        AuthPlain.new,
+        AuthLogin.new
+      ]
     end
 
     def handle(&block)
       write "220 #{server.host} ESMTP"
       while connected? && (line = read)
-        case line
-        when /^EHLO/i then ehlo(line)
-        when /^HELO/i then helo(line)
-        when /^MAIL FROM/i then noop
-        when /^RCPT TO/i then noop
-        when /^DATA/i then data(&block)
-        when /^QUIT/i then quit
-        when /^STARTTLS/i then start_tls
-        when /^RSET/i then noop
-        when /^NOOP/i then noop
-        when /^AUTH PLAIN/i then auth_plain(line)
-        when /^AUTH LOGIN/i then auth_login(line)
-        else
-          logger.error(line)
-          write '502 Invalid/unsupported command'
-        end
+        command = commands.find { |x| x.matches?(line) } || Unsupported.new
+        command.run(self, line, &block)
       end
       close
     rescue Errno::ECONNRESET, Errno::EPIPE => error
@@ -36,73 +167,10 @@ module Minbox
       close
     end
 
-    private
-
-    def quit
-      write '221 Bye'
-      close
-    end
-
-    def data
-      write '354 End data with <CR><LF>.<CR><LF>'
-      body = []
-      line = read
-      until line.nil? || line.match(/^\.\r\n$/)
-        body << line
-        line = read
-      end
-      write '250 OK'
-      yield(Mail.new(body.join)) unless body.empty?
-    end
-
-    def ehlo(line)
-      _ehlo, _client_domain = line.split(' ')
-      write "250-#{server.host} offers a warm hug of welcome"
-      write '250-8BITMIME'
-      write '250-ENHANCEDSTATUSCODES'
-      # write "250 STARTTLS"
-      write '250-AUTH PLAIN LOGIN'
-      write '250 OK'
-    end
-
-    def helo(line)
-      _ehlo, _client_domain = line.split(' ')
-      write "250 #{server.host}"
-    end
-
-    def start_tls
-      write '220 Ready to start TLS'
-
+    def secure_socket!
       socket = OpenSSL::SSL::SSLSocket.new(@socket, server.ssl_context)
       socket.sync_close = true
       @socket = socket.accept
-    end
-
-    def noop
-      write '250 OK'
-    end
-
-    def auth_plain(line)
-      data = line.gsub(/AUTH PLAIN ?/i, '')
-      if data.strip == ''
-        write '334'
-        data = read
-      end
-      parts = Base64.decode64(data).split("\0")
-      username = parts[-2]
-      password = parts[-1]
-      authenticate(username, password)
-    end
-
-    def auth_login(line)
-      username = line.gsub!(/AUTH LOGIN ?/i, '')
-      if username.strip == ''
-        write '334 VXNlcm5hbWU6'
-        username = read
-      end
-      write '334 UGFzc3dvcmQ6'
-      password = Base64.decode64(read)
-      authenticate(username, password)
     end
 
     def write(message)
