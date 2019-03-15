@@ -1,23 +1,7 @@
 # frozen_string_literal: true
 
 module Minbox
-  class Command
-    attr_reader :regex
-
-    def initialize(regex)
-      @regex = regex
-    end
-
-    def matches?(line)
-      line.match?(regex)
-    end
-  end
-
-  class Ehlo < Command
-    def initialize
-      super(/^EHLO/i)
-    end
-
+  class Ehlo
     def run(client, line)
       _ehlo, _client_domain = line.split(' ')
       client.write "250-#{client.server.host} offers a warm hug of welcome"
@@ -29,39 +13,27 @@ module Minbox
     end
   end
 
-  class Helo < Command
-    def initialize
-      super(/^HELO/i)
-    end
-
+  class Helo
     def run(client, line)
       _ehlo, _client_domain = line.split(' ')
       client.write "250 #{client.server.host}"
     end
   end
 
-  class Noop < Command
+  class Noop
     def run(client, _line)
       client.write '250 OK'
     end
   end
 
-  class Quit < Command
-    def initialize
-      super(/^QUIT/i)
-    end
-
+  class Quit
     def run(client, _line)
       client.write '221 Bye'
       client.close
     end
   end
 
-  class Data < Command
-    def initialize
-      super(/^DATA/i)
-    end
-
+  class Data
     def run(client, _line)
       client.write '354 End data with <CR><LF>.<CR><LF>'
       body = []
@@ -75,22 +47,14 @@ module Minbox
     end
   end
 
-  class StartTls < Command
-    def initialize
-      super(/^STARTTLS/i)
-    end
-
+  class StartTls
     def run(client, _line)
       client.write '220 Ready to start TLS'
       client.secure_socket!
     end
   end
 
-  class AuthPlain < Command
-    def initialize
-      super(/^AUTH PLAIN/i)
-    end
-
+  class AuthPlain
     def run(client, line)
       data = line.gsub(/AUTH PLAIN ?/i, '')
       if data.strip == ''
@@ -104,11 +68,7 @@ module Minbox
     end
   end
 
-  class AuthLogin < Command
-    def initialize
-      super(/^AUTH LOGIN/i)
-    end
-
+  class AuthLogin
     def run(client, line)
       username = line.gsub!(/AUTH LOGIN ?/i, '')
       if username.strip == ''
@@ -122,10 +82,6 @@ module Minbox
   end
 
   class Unsupported
-    def matches?(_line)
-      true
-    end
-
     def run(client, line)
       client.logger.error(line)
       client.write '502 Invalid/unsupported command'
@@ -139,11 +95,11 @@ module Minbox
       /^DATA/i => Data.new,
       /^EHLO/i => Ehlo.new,
       /^HELO/i => Helo.new,
-      /^MAIL FROM/i => Noop.new(/^MAIL FROM/i),
-      /^NOOP/i => Noop.new(/^NOOP/i),
+      /^MAIL FROM/i => Noop.new,
+      /^NOOP/i => Noop.new,
       /^QUIT/i => Quit.new,
-      /^RCPT TO/i => Noop.new(/^RCPT TO/i),
-      /^RSET/i => Noop.new(/^RSET/i),
+      /^RCPT TO/i => Noop.new,
+      /^RSET/i => Noop.new,
       /^STARTTLS/i => StartTls.new,
     )
     attr_reader :server, :socket, :logger
