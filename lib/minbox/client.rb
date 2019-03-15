@@ -102,6 +102,7 @@ module Minbox
       /^RSET/i => Noop.new,
       /^STARTTLS/i => StartTls.new,
     )
+    UNSUPPORTED = Unsupported.new
     attr_reader :server, :socket, :logger
 
     def initialize(server, socket, logger)
@@ -113,7 +114,7 @@ module Minbox
     def handle(&block)
       write "220 #{server.host} ESMTP"
       while connected? && (line = read)
-        command = COMMANDS[line] || Unsupported.new
+        command = COMMANDS.fetch(line, UNSUPPORTED)
         command.run(self, line, &block)
       end
       close
