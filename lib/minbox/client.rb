@@ -133,19 +133,19 @@ module Minbox
   end
 
   class Client
-    COMMANDS = [
-      Ehlo.new,
-      Helo.new,
-      Noop.new(/^MAIL FROM/i),
-      Noop.new(/^RCPT TO/i),
-      Noop.new(/^RSET/i),
-      Noop.new(/^NOOP/i),
-      Quit.new,
-      Data.new,
-      StartTls.new,
-      AuthPlain.new,
-      AuthLogin.new
-    ].freeze
+    COMMANDS = Hashie::Rash.new(
+      /^AUTH LOGIN/i => AuthLogin.new,
+      /^AUTH PLAIN/i => AuthPlain.new,
+      /^DATA/i => Data.new,
+      /^EHLO/i => Ehlo.new,
+      /^HELO/i => Helo.new,
+      /^MAIL FROM/i => Noop.new(/^MAIL FROM/i),
+      /^NOOP/i => Noop.new(/^NOOP/i),
+      /^QUIT/i => Quit.new,
+      /^RCPT TO/i => Noop.new(/^RCPT TO/i),
+      /^RSET/i => Noop.new(/^RSET/i),
+      /^STARTTLS/i => StartTls.new,
+    )
     attr_reader :server, :socket, :logger
 
     def initialize(server, socket, logger)
@@ -157,7 +157,7 @@ module Minbox
     def handle(&block)
       write "220 #{server.host} ESMTP"
       while connected? && (line = read)
-        command = COMMANDS.find { |x| x.matches?(line) } || Unsupported.new
+        command = COMMANDS[line] || Unsupported.new
         command.run(self, line, &block)
       end
       close

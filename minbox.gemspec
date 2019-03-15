@@ -35,6 +35,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'hashie', '~> 3.6'
   spec.add_dependency 'mail', '~> 2.7'
   spec.add_dependency 'redis', '~> 4.1'
   spec.add_dependency 'thor', '~> 0.20'
