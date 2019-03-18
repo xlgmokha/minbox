@@ -105,14 +105,14 @@ RSpec.describe Minbox::Server do
         specify { expect(result).to include('250 OK') }
       end
 
-      context "when sending multiple emails from multiple threads" do
+      context 'when sending multiple emails from multiple threads' do
         let!(:email) { Faker::Internet.email }
         let!(:mail) { create_mail }
-        let!(:mail_string) { mail.to_s  }
+        let!(:mail_string) { mail.to_s }
 
         specify do
           threads = []
-          10.times do |n|
+          10.times do |_n|
             threads << Thread.new do
               i = rand(10)
               result = Net::SMTP.start(host, port) do |smtp|
