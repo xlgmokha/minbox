@@ -12,13 +12,21 @@ module Minbox
     class Application < Thor
       package_name 'minbox'
 
-      desc 'client <HOST> <PORT>', 'SMTP client'
-      def client(host = 'localhost', port = 25)
-        mail = create_mail
+      method_option :from, type: :string, default: 'me@example.org'
+      method_option :to, type: :string, default: ['them@example.org']
+      method_option :subject, type: :string, default: "#{Time.now} This is a test message."
+      method_option :body, type: :string, default: "#{Time.now} This is a test message."
+      desc 'send <HOST> <PORT>', 'Send mail to SMTP server'
+      def send(host = 'localhost', port = 25)
+        mail = create_mail do |x|
+          x.to = options[:to]
+          x.from = options[:from]
+          x.subject = options[:subject]
+          x.body = options[:body]
+        end
         Net::SMTP.start(host, port) do |smtp|
           smtp.debug_output = Minbox.logger
-          smtp.send_message(mail.to_s, 'me+1@example.org', 'them+1@example.com')
-          smtp.send_message(mail.to_s, 'me+2@example.org', 'them+2@example.com')
+          smtp.send_message(mail.to_s, options[:from], options[:to])
         end
       end
 
@@ -40,11 +48,8 @@ module Minbox
       private
 
       def create_mail
-        Mail.new do
-          from 'Your Name <me@example.org>'
-          to 'Destination Address <them@example.com>'
-          subject 'test message'
-          body "#{Time.now} This is a test message."
+        Mail.new do |x|
+          yield x if block_given?
         end
       end
     end
