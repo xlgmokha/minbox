@@ -5,7 +5,6 @@ require 'concurrent'
 require 'hashie'
 require 'logger'
 require 'socket'
-require 'socket'
 
 require 'minbox/core'
 require 'minbox/publisher'

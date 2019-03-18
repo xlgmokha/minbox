@@ -18,10 +18,9 @@ module Minbox
       method_option :body, type: :string, default: "#{Time.now} This is a test message."
       desc 'send <HOST> <PORT>', 'Send mail to SMTP server'
       def send(host = 'localhost', port = 25)
-        mail = create_mail(options[:to], options[:from], options[:subject], STDIN.tty? ? options[:body] : $stdin.read)
         Net::SMTP.start(host, port) do |smtp|
           smtp.debug_output = Minbox.logger
-          smtp.send_message(mail.to_s, options[:from], options[:to])
+          smtp.send_message(create_mail(options).to_s, options[:from], options[:to])
         end
       end
 
@@ -43,12 +42,12 @@ module Minbox
 
       private
 
-      def create_mail(to, from, subject, body)
+      def create_mail(options)
         Mail.new do |x|
-          x.to = to
-          x.from = from
-          x.subject = subject
-          x.body = body
+          x.to = options[:to]
+          x.from = options[:from]
+          x.subject = options[:subject]
+          x.body = STDIN.tty? ? options[:body] : $stdin.read
         end
       end
     end
