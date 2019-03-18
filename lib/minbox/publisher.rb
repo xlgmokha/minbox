@@ -50,7 +50,7 @@ module Minbox
     end
 
     def add(publisher)
-      publishers.push(publisher)
+      publishers << publisher
     end
 
     def publish(mail)

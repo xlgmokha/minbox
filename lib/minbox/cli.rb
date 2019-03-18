@@ -22,7 +22,7 @@ module Minbox
           x.to = options[:to]
           x.from = options[:from]
           x.subject = options[:subject]
-          x.body = options[:body]
+          x.body = (STDIN.tty?) ? options[:body] : $stdin.read
         end
         Net::SMTP.start(host, port) do |smtp|
           smtp.debug_output = Minbox.logger
@@ -35,7 +35,8 @@ module Minbox
       desc 'server <HOST> <PORT>', 'SMTP server'
       def server(host = 'localhost', port = '25')
         publisher = Publisher.from(options[:output])
-        Server.new(host, port, options[:tls]).listen! do |mail|
+        server = Server.new(host: host, port: port, tls: options[:tls])
+        server.listen! do |mail|
           publisher.publish(mail)
         end
       end

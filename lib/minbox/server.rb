@@ -5,14 +5,14 @@ module Minbox
     SUBJECT = '/C=CA/ST=AB/L=Calgary/O=minbox/OU=development/CN=minbox'
     attr_reader :host, :logger, :key, :server
 
-    def initialize(host = 'localhost', port = 25, tls = false, logger = Minbox.logger)
+    def initialize(host: 'localhost', port: 25, tls: false, logger: Minbox.logger, thread_pool: Concurrent::CachedThreadPool.new)
       @host = host
       @logger = logger
       @tls = tls
       @key = OpenSSL::PKey::RSA.new(2048)
       logger.debug("Starting server on port #{port}...")
       @server = TCPServer.new(port.to_i)
-      @thread_pool = Concurrent::CachedThreadPool.new
+      @thread_pool = thread_pool
     end
 
     def tls?
