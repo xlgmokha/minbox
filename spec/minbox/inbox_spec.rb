@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Minbox::Inbox do
-  subject! { described_class.new }
+  subject! { described_class.instance }
 
   def create_emails
     fork do

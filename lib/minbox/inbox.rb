@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 require 'listen'
+require 'singleton'
 
 module Minbox
   class Inbox
+    include Singleton
     include Enumerable
 
     def initialize(root_dir: 'tmp')
