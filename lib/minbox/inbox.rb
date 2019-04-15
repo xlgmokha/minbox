@@ -11,16 +11,19 @@ module Minbox
         added.each do |file|
           @emails[File.basename(file)] = Mail.read(file)
         end
+        removed.each do |file|
+          @emails.delete(File.basename(file))
+        end
       end.start
     end
 
     def emails(count: 0)
-      wait_until { |x| @emails.keys.count >= count } if count > 0
+      wait_until { |x| x.count >= count } if count > 0
 
       @emails.keys
     end
 
-    def wait_until(seconds: 10, wait: 0.1)
+    def wait_until(seconds: 5, wait: 0.1)
       iterations = (seconds / wait).to_i
       iterations.times do
         return true if yield(self)

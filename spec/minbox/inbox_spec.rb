@@ -4,8 +4,6 @@ RSpec.describe Minbox::Inbox do
   subject! { described_class.instance }
 
   before do
-    subject.empty!
-
     IO.write("tmp/1.eml", Mail.new do
       to Faker::Internet.email
       from Faker::Internet.email
@@ -41,7 +39,9 @@ RSpec.describe Minbox::Inbox do
 
   describe "#wait_until!" do
     context "when the condition is satisfied" do
-      specify { expect(subject.emails(count: 2)).to match_array(['1.eml', '2.eml']) }
+      before { subject.wait_until! { |x| x.count == 2 } }
+
+      specify { expect(subject.emails).to match_array(['1.eml', '2.eml']) }
     end
 
     context "when the condition is not satisfied" do
