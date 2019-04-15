@@ -1,33 +1,36 @@
 # frozen_string_literal: true
+require 'listen'
 
 module Minbox
   class Inbox
     include Enumerable
-    attr_reader :root_dir
 
-    def initialize(root_dir: 'tmp')
-      @root_dir = Pathname.new(root_dir)
+    def initialize
+      empty!
+    end
+
+    def start(root_dir: 'tmp')
+      ::Listen.to(File.expand_path(root_dir), only: /\.eml$/) do |modified, added, removed|
+        added.each do |file|
+          @emails[File.basename(file)] = Mail.read(file)
+        end
+      end.start
     end
 
     def emails
-      map { |x| File.basename(x) }
+      @emails.keys
     end
 
     def open(id)
-      file = find { |x| x.end_with?(id) }
-      file ? Mail.read(file) : nil
+      @emails[id]
     end
 
     def empty!
-      each do |email|
-        File.unlink(email)
-      rescue StandardError
-        nil
-      end
+      @emails = {}
     end
 
     def each
-      Dir[root_dir.join("*.eml")].sort_by { |x| File.mtime(x) }.each do |email|
+      @emails.each do |id, email|
         yield email
       end
     end

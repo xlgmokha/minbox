@@ -5,6 +5,7 @@ RSpec.describe Minbox::Inbox do
 
   before do
     FileUtils.rm(Dir.glob('tmp/*.eml'))
+    subject.start
   end
 
   describe "#empty!" do
@@ -17,22 +18,25 @@ RSpec.describe Minbox::Inbox do
       subject.empty!
     end
 
-    specify { expect(Dir['tmp/*.eml'].count).to be_zero }
+    specify { expect(subject.count).to be_zero }
   end
 
   describe "#emails" do
     before :example do
-      subject.empty!
-      IO.write("tmp/1.eml", Mail.new do
-        to Faker::Internet.email
-        from Faker::Internet.email
-        subject "hello world"
-      end.to_s)
-      IO.write("tmp/2.eml", Mail.new do
-        to Faker::Internet.email
-        from Faker::Internet.email
-        subject "goodbye world"
-      end.to_s)
+      pid = fork do
+        IO.write("tmp/1.eml", Mail.new do
+          to Faker::Internet.email
+          from Faker::Internet.email
+          subject "hello world"
+        end.to_s)
+        IO.write("tmp/2.eml", Mail.new do
+          to Faker::Internet.email
+          from Faker::Internet.email
+          subject "goodbye world"
+        end.to_s)
+        sleep 0.3
+      end
+      Process.wait(pid)
       @result = subject.emails
     end
 
@@ -41,17 +45,20 @@ RSpec.describe Minbox::Inbox do
 
   describe "#open" do
     before :example do
-      subject.empty!
-      IO.write("tmp/1.eml", Mail.new do
-        to Faker::Internet.email
-        from Faker::Internet.email
-        subject "hello world"
-      end.to_s)
-      IO.write("tmp/2.eml", Mail.new do
-        to Faker::Internet.email
-        from Faker::Internet.email
-        subject "goodbye world"
-      end.to_s)
+      pid = fork do
+        IO.write("tmp/1.eml", Mail.new do
+          to Faker::Internet.email
+          from Faker::Internet.email
+          subject "hello world"
+        end.to_s)
+        IO.write("tmp/2.eml", Mail.new do
+          to Faker::Internet.email
+          from Faker::Internet.email
+          subject "goodbye world"
+        end.to_s)
+        sleep 0.3
+      end
+      Process.wait(pid)
     end
 
     context "when opening an email in the inbox" do

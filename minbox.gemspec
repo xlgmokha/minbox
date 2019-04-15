@@ -37,6 +37,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'concurrent-ruby', '~> 1.1'
   spec.add_dependency 'hashie', '~> 3.6'
+  spec.add_dependency 'listen', '~> 3.1'
   spec.add_dependency 'mail', '~> 2.7'
   spec.add_dependency 'redis', '~> 4.1'
   spec.add_dependency 'thor', '~> 0.20'
