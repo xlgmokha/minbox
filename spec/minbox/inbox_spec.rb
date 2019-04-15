@@ -37,11 +37,20 @@ RSpec.describe Minbox::Inbox do
   end
 
   describe "#emails" do
-    let(:results) { subject.emails }
-
     before { Process.wait(create_emails) }
 
-    specify { expect(results).to match_array(['1.eml', '2.eml']) }
+    specify { expect(subject.emails).to match_array(['1.eml', '2.eml']) }
+  end
+
+  describe "#until" do
+    before do
+      create_emails
+      subject.until do |inbox|
+        inbox.count == 2
+      end
+    end
+
+    specify { expect(subject.emails).to match_array(['1.eml', '2.eml']) }
   end
 
   describe "#open" do

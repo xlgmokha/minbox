@@ -18,6 +18,16 @@ module Minbox
       @emails.keys
     end
 
+    def until(seconds: 10, wait: 0.1)
+      iterations = (seconds / wait).to_i
+      iterations.times do
+        return if yield(self)
+
+        sleep wait
+      end
+      raise "timeout: #{seconds} seconds elapsed."
+    end
+
     def open(id)
       @emails[id]
     end
