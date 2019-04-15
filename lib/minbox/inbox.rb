@@ -5,11 +5,8 @@ module Minbox
   class Inbox
     include Enumerable
 
-    def initialize
+    def initialize(root_dir: 'tmp')
       empty!
-    end
-
-    def start(root_dir: 'tmp')
       ::Listen.to(File.expand_path(root_dir), only: /\.eml$/) do |modified, added, removed|
         added.each do |file|
           @emails[File.basename(file)] = Mail.read(file)
