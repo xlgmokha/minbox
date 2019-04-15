@@ -36,28 +36,29 @@ RSpec.describe Minbox::Inbox do
   end
 
   describe "#emails" do
-    before do
-      create_emails
-      subject.until { |inbox| inbox.count == 2 }
-    end
+    before { create_emails }
 
-    specify { expect(subject.emails).to match_array(['1.eml', '2.eml']) }
+    specify { expect(subject.emails(count: 2)).to match_array(['1.eml', '2.eml']) }
   end
 
-  describe "#until" do
-    before do
-      create_emails
-      subject.until { |inbox| inbox.count == 2 }
+  describe "#wait_until!" do
+    context "when the condition is satisfied" do
+      before { create_emails }
+
+      specify { expect(subject.emails(count: 2)).to match_array(['1.eml', '2.eml']) }
     end
 
-    specify { expect(subject.emails).to match_array(['1.eml', '2.eml']) }
+    context "when the condition is not satisfied" do
+      specify do
+        expect do
+          subject.wait_until!(seconds: 0.1) { |inbox| false }
+        end.to raise_error(/timeout/)
+      end
+    end
   end
 
   describe "#open" do
-    before do
-      create_emails
-      subject.until { |inbox| inbox.count == 2 }
-    end
+    before { create_emails }
 
     context "when opening an email in the inbox" do
       let(:result) { subject.open('2.eml') }

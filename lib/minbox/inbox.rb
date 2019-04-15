@@ -5,7 +5,10 @@ module Minbox
     include Singleton
     include Enumerable
 
-    def initialize(root_dir: 'tmp')
+    attr_accessor :seconds
+
+    def initialize(root_dir: 'tmp', seconds: 1)
+      @seconds = seconds
       empty!
       ::Listen.to(File.expand_path(root_dir), only: /\.eml$/) do |modified, added, removed|
         added.each do |file|
@@ -14,21 +17,27 @@ module Minbox
       end.start
     end
 
-    def emails
+    def emails(count: 0)
+      wait_until { |x| x.count >= count } if count > 0
+
       @emails.keys
     end
 
-    def until(seconds: 10, wait: 0.1)
+    def wait_until(seconds: self.seconds, wait: 0.1)
       iterations = (seconds / wait).to_i
       iterations.times do
-        return if yield(self)
-
+        return true if yield(self)
         sleep wait
       end
-      raise "timeout: #{seconds} seconds elapsed."
+      false
+    end
+
+    def wait_until!(*args, &block)
+      raise "timeout: expired. #{args}" unless wait_until(*args, &block)
     end
 
     def open(id)
+      wait_until { @emails[id] }
       @emails[id]
     end
 
