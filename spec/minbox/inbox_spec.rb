@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Minbox::Inbox do
-  subject! { described_class.instance }
+  subject! { described_class.instance(root_dir: 'tmp') }
 
   before do
     IO.write("tmp/1.eml", Mail.new do

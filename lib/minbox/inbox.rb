@@ -2,10 +2,14 @@
 
 module Minbox
   class Inbox
-    include Singleton
     include Enumerable
 
-    def initialize(root_dir: 'tmp')
+    def self.instance(root_dir:)
+      @instances ||= {}
+      @instances[root_dir] ||= new(root_dir: root_dir)
+    end
+
+    def initialize(root_dir:)
       empty!
       ::Listen.to(File.expand_path(root_dir), only: /\.eml$/) do |modified, added, removed|
         added.each do |file|
