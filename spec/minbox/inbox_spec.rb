@@ -15,7 +15,6 @@ RSpec.describe Minbox::Inbox do
         from Faker::Internet.email
         subject "goodbye world"
       end.to_s)
-      sleep 1.5
     end
   end
 
@@ -37,7 +36,10 @@ RSpec.describe Minbox::Inbox do
   end
 
   describe "#emails" do
-    before { Process.wait(create_emails) }
+    before do
+      create_emails
+      subject.until { |inbox| inbox.count == 2 }
+    end
 
     specify { expect(subject.emails).to match_array(['1.eml', '2.eml']) }
   end
@@ -45,16 +47,17 @@ RSpec.describe Minbox::Inbox do
   describe "#until" do
     before do
       create_emails
-      subject.until do |inbox|
-        inbox.count == 2
-      end
+      subject.until { |inbox| inbox.count == 2 }
     end
 
     specify { expect(subject.emails).to match_array(['1.eml', '2.eml']) }
   end
 
   describe "#open" do
-    before { Process.wait(create_emails) }
+    before do
+      create_emails
+      subject.until { |inbox| inbox.count == 2 }
+    end
 
     context "when opening an email in the inbox" do
       let(:result) { subject.open('2.eml') }
