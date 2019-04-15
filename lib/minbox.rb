@@ -6,9 +6,10 @@ require 'hashie'
 require 'logger'
 require 'socket'
 
-require 'minbox/core'
-require 'minbox/publisher'
 require 'minbox/client'
+require 'minbox/core'
+require 'minbox/inbox'
+require 'minbox/publisher'
 require 'minbox/server'
 require 'minbox/version'
 
