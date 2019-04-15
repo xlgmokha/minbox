@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require 'listen'
-require 'singleton'
 
 module Minbox
   class Inbox

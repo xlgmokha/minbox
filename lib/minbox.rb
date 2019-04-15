@@ -3,7 +3,9 @@
 require 'base64'
 require 'concurrent'
 require 'hashie'
+require 'listen'
 require 'logger'
+require 'singleton'
 require 'socket'
 
 require 'minbox/client'
