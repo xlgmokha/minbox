@@ -37,9 +37,7 @@ module Minbox
     def open(subject:)
       wait_until do
         emails.find do |email|
-          x = subject.is_a?(String) ? email.subject == subject : email.subject.match?(subject)
-          Minbox.logger.debug([subject, email.subject, x].inspect)
-          x
+          subject.is_a?(String) ? email.subject == subject : email.subject.match?(subject)
         end
       end
     end
@@ -57,8 +55,6 @@ module Minbox
     private
 
     def changed(modified, added, removed)
-      Minbox.logger.debug([Thread.current.object_id, modified, added, removed].inspect)
-
       added.each do |file|
         mail = Mail.read(file)
         Minbox.logger.debug("Received: #{mail.subject}")
