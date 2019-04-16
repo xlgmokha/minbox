@@ -23,26 +23,30 @@ module Minbox
 
     def emails(count: 0)
       wait_until { |x| x.count >= count } if count > 0
-
-      @emails.keys
+      @emails.values
     end
 
     def wait_until(seconds: 5, wait: 0.1)
       iterations = (seconds / wait).to_i
       iterations.times do
-        return true if yield(self)
+        result = yield(self)
+        return result if result
+
         sleep wait
       end
-      false
+      nil
     end
 
     def wait_until!(*args, &block)
       raise "timeout: expired. #{args}" unless wait_until(*args, &block)
     end
 
-    def open(id)
-      wait_until { @emails[id] }
-      @emails[id]
+    def open(subject:)
+      wait_until do
+        emails.find do |email|
+          email.subject == subject
+        end
+      end
     end
 
     def empty!

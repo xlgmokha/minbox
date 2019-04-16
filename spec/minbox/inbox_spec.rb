@@ -34,14 +34,14 @@ RSpec.describe Minbox::Inbox do
   end
 
   describe "#emails" do
-    specify { expect(subject.emails(count: 2)).to match_array(['1.eml', '2.eml']) }
+    specify { expect(subject.emails(count: 2).map(&:subject)).to match_array(['goodbye world', 'hello world']) }
   end
 
   describe "#wait_until!" do
     context "when the condition is satisfied" do
       before { subject.wait_until! { |x| x.count == 2 } }
 
-      specify { expect(subject.emails).to match_array(['1.eml', '2.eml']) }
+      specify { expect(subject.emails(count: 2).map(&:subject)).to match_array(['goodbye world', 'hello world']) }
     end
 
     context "when the condition is not satisfied" do
@@ -54,14 +54,12 @@ RSpec.describe Minbox::Inbox do
   end
 
   describe "#open" do
-    context "when opening an email in the inbox" do
-      let(:result) { subject.open('2.eml') }
-
-      specify { expect(result.subject).to eql('goodbye world') }
+    context "when opening an email by subject" do
+      specify { expect(subject.open(subject: 'goodbye world').subject).to eql('goodbye world') }
     end
 
     context "when opening an email not in the inbox" do
-      let(:result) { subject.open("#{SecureRandom.uuid}.eml") }
+      let(:result) { subject.open(subject: SecureRandom.uuid) }
 
       specify { expect(result).to be_nil }
     end
