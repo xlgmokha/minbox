@@ -10,15 +10,8 @@ module Minbox
     end
 
     def initialize(root_dir:)
+      start_listening(root_dir)
       empty!
-      ::Listen.to(File.expand_path(root_dir), only: /\.eml$/) do |modified, added, removed|
-        added.each do |file|
-          @emails[File.basename(file)] = Mail.read(file)
-        end
-        removed.each do |file|
-          @emails.delete(File.basename(file))
-        end
-      end.start
     end
 
     def emails(count: 0)
@@ -57,6 +50,25 @@ module Minbox
       @emails.each do |id, email|
         yield email
       end
+    end
+
+    private
+
+    def changed(modified, added, removed)
+      added.each do |file|
+        @emails[File.basename(file)] = Mail.read(file)
+      end
+      removed.each do |file|
+        @emails.delete(File.basename(file))
+      end
+    end
+
+    def listener_for(dir)
+      ::Listen.to(File.expand_path(dir), only: /\.eml$/, &method(:changed))
+    end
+
+    def start_listening(root_dir)
+      listener_for(root_dir).start
     end
   end
 end
