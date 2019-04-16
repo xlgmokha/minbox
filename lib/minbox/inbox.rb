@@ -19,7 +19,7 @@ module Minbox
       @emails.values
     end
 
-    def wait_until(seconds: 5, wait: 0.1)
+    def wait_until(seconds: 10, wait: 0.1)
       iterations = (seconds / wait).to_i
       iterations.times do
         result = yield(self)
@@ -37,7 +37,9 @@ module Minbox
     def open(subject:)
       wait_until do
         emails.find do |email|
-          email.subject.match?(subject)
+          x = subject.is_a?(String) ? email.subject == subject : email.subject.match?(subject)
+          Minbox.logger.debug([subject, email.subject, x].inspect)
+          x
         end
       end
     end
@@ -55,8 +57,12 @@ module Minbox
     private
 
     def changed(modified, added, removed)
+      Minbox.logger.debug([Thread.current.object_id, modified, added, removed].inspect)
+
       added.each do |file|
-        @emails[File.basename(file)] = Mail.read(file)
+        mail = Mail.read(file)
+        Minbox.logger.debug("Received: #{mail.subject}")
+        @emails[File.basename(file)] = mail
       end
       removed.each do |file|
         @emails.delete(File.basename(file))

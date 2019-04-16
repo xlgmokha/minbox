@@ -12,7 +12,7 @@ RSpec.describe Minbox::Inbox do
     IO.write("tmp/2.eml", Mail.new do
       to Faker::Internet.email
       from Faker::Internet.email
-      subject "goodbye world"
+      subject "[ACTION] goodbye world"
     end.to_s)
   end
 
@@ -34,14 +34,14 @@ RSpec.describe Minbox::Inbox do
   end
 
   describe "#emails" do
-    specify { expect(subject.emails(count: 2).map(&:subject)).to match_array(['goodbye world', 'hello world']) }
+    specify { expect(subject.emails(count: 2).map(&:subject)).to match_array(['[ACTION] goodbye world', 'hello world']) }
   end
 
   describe "#wait_until!" do
     context "when the condition is satisfied" do
       before { subject.wait_until! { |x| x.count == 2 } }
 
-      specify { expect(subject.emails(count: 2).map(&:subject)).to match_array(['goodbye world', 'hello world']) }
+      specify { expect(subject.emails(count: 2).map(&:subject)).to match_array(['[ACTION] goodbye world', 'hello world']) }
     end
 
     context "when the condition is not satisfied" do
@@ -55,8 +55,8 @@ RSpec.describe Minbox::Inbox do
 
   describe "#open" do
     context "when opening an email by subject" do
-      specify { expect(subject.open(subject: 'goodbye world').subject).to eql('goodbye world') }
-      specify { expect(subject.open(subject: /goodbye/).subject).to eql('goodbye world') }
+      specify { expect(subject.open(subject: '[ACTION] goodbye world').subject).to eql('[ACTION] goodbye world') }
+      specify { expect(subject.open(subject: /goodbye/).subject).to eql('[ACTION] goodbye world') }
       specify { expect(subject.open(subject: /hello/).subject).to eql('hello world') }
       specify { expect(subject.open(subject: /world/).subject).to eql('hello world') }
     end
