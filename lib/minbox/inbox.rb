@@ -44,7 +44,7 @@ module Minbox
     def open(subject:)
       wait_until do
         emails.find do |email|
-          email.subject == subject
+          email.subject.match?(subject)
         end
       end
     end

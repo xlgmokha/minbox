@@ -56,6 +56,7 @@ RSpec.describe Minbox::Inbox do
   describe "#open" do
     context "when opening an email by subject" do
       specify { expect(subject.open(subject: 'goodbye world').subject).to eql('goodbye world') }
+      specify { expect(subject.open(subject: /goodbye/).subject).to eql('goodbye world') }
     end
 
     context "when opening an email not in the inbox" do
