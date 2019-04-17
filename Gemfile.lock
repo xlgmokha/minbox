@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    minbox (0.1.5)
+    minbox (0.1.6)
       concurrent-ruby (~> 1.1)
       hashie (~> 3.6)
       listen (~> 3.1)
