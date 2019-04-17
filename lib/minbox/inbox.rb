@@ -10,13 +10,16 @@ module Minbox
     end
 
     def initialize(root_dir:)
+      @semaphore = Mutex.new
       start_listening(root_dir)
       empty!
     end
 
     def emails(count: 0)
       wait_until { |x| x.count >= count } if count > 0
-      @emails.values
+      with_lock do |emails|
+        emails.values
+      end
     end
 
     def wait_until(seconds: 10, wait: 0.1)
@@ -43,7 +46,9 @@ module Minbox
     end
 
     def empty!
-      @emails = {}
+      with_lock do
+        @emails = {}
+      end
     end
 
     def each
@@ -55,13 +60,15 @@ module Minbox
     private
 
     def changed(modified, added, removed)
-      added.each do |file|
-        mail = Mail.read(file)
-        Minbox.logger.debug("Received: #{mail.subject}")
-        @emails[File.basename(file)] = mail
-      end
-      removed.each do |file|
-        @emails.delete(File.basename(file))
+      with_lock do |emails|
+        added.each do |file|
+          mail = Mail.read(file)
+          Minbox.logger.debug("Received: #{mail.subject}")
+          emails[File.basename(file)] = mail
+        end
+        removed.each do |file|
+          emails.delete(File.basename(file))
+        end
       end
     end
 
@@ -71,6 +78,12 @@ module Minbox
 
     def start_listening(root_dir)
       listener_for(root_dir).start
+    end
+
+    def with_lock
+      @semaphore.synchronize do
+        yield @emails if block_given?
+      end
     end
   end
 end
