@@ -36,7 +36,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'concurrent-ruby', '~> 1.1'
-  spec.add_dependency 'hashie', '~> 3.6'
+  spec.add_dependency 'hashie', '>= 3.6', '< 5.0'
   spec.add_dependency 'listen', '~> 3.1'
   spec.add_dependency 'mail', '~> 2.7'
   spec.add_dependency 'redis', '~> 4.1'
