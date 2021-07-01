@@ -3,62 +3,62 @@
 module Minbox
   class Ehlo
     def run(client, line)
-      _ehlo, _client_domain = line.split(' ')
+      _ehlo, _client_domain = line.split(" ")
       client.write "250-#{client.server.host} offers a warm hug of welcome"
-      client.write '250-8BITMIME'
-      client.write '250-ENHANCEDSTATUSCODES'
+      client.write "250-8BITMIME"
+      client.write "250-ENHANCEDSTATUSCODES"
       # client.write "250 STARTTLS"
-      client.write '250-AUTH PLAIN LOGIN'
-      client.write '250 OK'
+      client.write "250-AUTH PLAIN LOGIN"
+      client.write "250 OK"
     end
   end
 
   class Helo
     def run(client, line)
-      _ehlo, _client_domain = line.split(' ')
+      _ehlo, _client_domain = line.split(" ")
       client.write "250 #{client.server.host}"
     end
   end
 
   class Noop
     def run(client, _line)
-      client.write '250 OK'
+      client.write "250 OK"
     end
   end
 
   class Quit
     def run(client, _line)
-      client.write '221 Bye'
+      client.write "221 Bye"
       client.close
     end
   end
 
   class Data
     def run(client, _line)
-      client.write '354 End data with <CR><LF>.<CR><LF>'
+      client.write "354 End data with <CR><LF>.<CR><LF>"
       body = []
       line = client.read
       until line.nil? || line.match(/^\.\r\n$/)
         body << line
         line = client.read
       end
-      client.write '250 OK'
+      client.write "250 OK"
       yield(Mail.new(body.join)) unless body.empty?
     end
   end
 
   class StartTls
     def run(client, _line)
-      client.write '220 Ready to start TLS'
+      client.write "220 Ready to start TLS"
       client.secure_socket!
     end
   end
 
   class AuthPlain
     def run(client, line)
-      data = line.gsub(/AUTH PLAIN ?/i, '')
-      if data.strip == ''
-        client.write '334'
+      data = line.gsub(/AUTH PLAIN ?/i, "")
+      if data.strip == ""
+        client.write "334"
         data = client.read
       end
       parts = Base64.decode64(data).split("\0")
@@ -70,12 +70,12 @@ module Minbox
 
   class AuthLogin
     def run(client, line)
-      username = line.gsub!(/AUTH LOGIN ?/i, '')
-      if username.strip == ''
-        client.write '334 VXNlcm5hbWU6'
+      username = line.gsub!(/AUTH LOGIN ?/i, "")
+      if username.strip == ""
+        client.write "334 VXNlcm5hbWU6"
         username = client.read
       end
-      client.write '334 UGFzc3dvcmQ6'
+      client.write "334 UGFzc3dvcmQ6"
       password = Base64.decode64(client.read)
       client.authenticate(username, password)
     end
@@ -84,7 +84,7 @@ module Minbox
   class Unsupported
     def run(client, line)
       client.logger.error(line)
-      client.write '502 Invalid/unsupported command'
+      client.write "502 Invalid/unsupported command"
     end
   end
 
@@ -152,9 +152,9 @@ module Minbox
 
     def authenticate(username, password)
       logger.debug("#{username}:#{password}")
-      return write '535 Authenticated failed - protocol error' unless username && password
+      return write "535 Authenticated failed - protocol error" unless username && password
 
-      write '235 2.7.0 Authentication successful'
+      write "235 2.7.0 Authentication successful"
     end
   end
 end

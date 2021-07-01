@@ -69,6 +69,9 @@ Metrics/LineLength:
   IgnoredPatterns:
     - '^#*'
 
+Naming/RescuedExceptionsVariableName:
+  PreferredName: error
+
 Style/Documentation:
   Enabled: false
 
@@ -76,7 +79,7 @@ Style/EachWithObject:
   Enabled: false
 
 Style/StringLiterals:
-  EnforcedStyle: 'single_quotes'
+  EnforcedStyle: 'double_quotes'
 
 Style/TrailingCommaInArrayLiteral:
   Enabled: false

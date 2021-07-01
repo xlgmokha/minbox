@@ -16,10 +16,8 @@ module Minbox
     end
 
     def emails(count: 0)
-      wait_until { |x| x.count >= count } if count > 0
-      with_lock do |emails|
-        emails.values
-      end
+      wait_until { |x| x.count >= count } if count.positive?
+      with_lock(&:values)
     end
 
     def wait_until(seconds: 10, wait: 0.1)
@@ -52,14 +50,14 @@ module Minbox
     end
 
     def each
-      @emails.each do |id, email|
+      @emails.each do |_id, email|
         yield email
       end
     end
 
     private
 
-    def changed(modified, added, removed)
+    def changed(_modified, added, removed)
       with_lock do |emails|
         added.each do |file|
           mail = Mail.read(file)

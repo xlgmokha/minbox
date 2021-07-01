@@ -2,10 +2,10 @@
 
 module Minbox
   class Server
-    SUBJECT = '/C=CA/ST=AB/L=Calgary/O=minbox/OU=development/CN=minbox'
+    SUBJECT = "/C=CA/ST=AB/L=Calgary/O=minbox/OU=development/CN=minbox"
     attr_reader :host, :logger, :key, :server
 
-    def initialize(host: 'localhost', port: 25, tls: false, logger: Minbox.logger, thread_pool: Concurrent::CachedThreadPool.new)
+    def initialize(host: "localhost", port: 25, tls: false, logger: Minbox.logger, thread_pool: Concurrent::CachedThreadPool.new)
       @host = host
       @logger = logger
       @tls = tls
@@ -21,7 +21,7 @@ module Minbox
 
     def listen!(&block)
       @server = upgrade(@server) if tls?
-      logger.debug('Server started!')
+      logger.debug("Server started!")
 
       loop do
         handle(server.accept, &block)
@@ -78,8 +78,8 @@ module Minbox
       extensions.subject_certificate =
         extensions.issuer_certificate = certificate
       [
-        ['subjectKeyIdentifier', 'hash', false],
-        ['keyUsage', 'keyEncipherment,digitalSignature', true],
+        ["subjectKeyIdentifier", "hash", false],
+        ["keyUsage", "keyEncipherment,digitalSignature", true],
       ].each do |x|
         certificate.add_extension(extensions.create_extension(x[0], x[1], x[2]))
       end
