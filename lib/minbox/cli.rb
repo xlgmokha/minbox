@@ -13,7 +13,7 @@ module Minbox
       package_name "minbox"
 
       method_option :from, type: :string, default: "me@example.org"
-      method_option :to, type: :string, default: ["them@example.org"]
+      method_option :to, type: :array, default: ["them@example.org"]
       method_option :subject, type: :string, default: "#{Time.now} This is a test message."
       method_option :body, type: :string, default: "#{Time.now} This is a test message."
       desc "send <HOST> <PORT>", "Send mail to SMTP server"
