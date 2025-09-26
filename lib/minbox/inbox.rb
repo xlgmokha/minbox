@@ -31,8 +31,8 @@ module Minbox
       nil
     end
 
-    def wait_until!(*args, &block)
-      raise "timeout: expired. #{args}" unless wait_until(*args, &block)
+    def wait_until!(seconds: 10, wait: 0.1, &block)
+      raise "timeout: expired" unless wait_until(seconds: seconds, wait: wait, &block)
     end
 
     def open(subject:)
