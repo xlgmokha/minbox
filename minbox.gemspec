@@ -35,12 +35,15 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
 
+  spec.add_dependency "base64", "~> 0.3"
   spec.add_dependency "concurrent-ruby", "~> 1.1"
   spec.add_dependency "hashie", "~> 3.6"
   spec.add_dependency "listen", "~> 3.1"
+  spec.add_dependency "logger", "~> 1.0"
   spec.add_dependency "mail", "~> 2.7"
-  spec.add_dependency "redis", "~> 4.1"
-  spec.add_dependency "thor", "~> 0.20"
+  spec.add_dependency "net-smtp", "~> 0.1"
+  spec.add_dependency "openssl", "~> 3.0"
+  spec.add_dependency "thor", "~> 1.0"
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "bundler-audit", "~> 0.6"
   spec.add_development_dependency "faker", "~> 1.9"

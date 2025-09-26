@@ -4,16 +4,12 @@ A minimal SMTP server written in ruby. `Minbox` offers a command line
 interface and is useful for end-to-end test suites or as a standalone SMTP server
 for development.
 
-`Minbox` is capable of publishing email messages to `stdout`, the `file`
-system or to `redis`.
+`Minbox` is capable of publishing email messages to `stdout`, or the `file`
+system.
 
 The `file` system publisher will write all emails to `./tmp` of the
 directory where you run minbox from. Each file is named with the format
 of `<timestamp>.eml`.
-
-The `redis` publisher will publish all emails to a channel named
-`minbox`. Use the `REDIS_URL` environment variable to control the redis
-client configuration.  See [this](https://github.com/redis/redis-rb/blob/df07a4c90413ed5dda7bc8fe928b00aaad5462fa/lib/redis/client.rb#L9) for more information.
 
 ## Installation
 
@@ -52,10 +48,10 @@ D, [2019-03-12T17:08:19.679380 #36618] DEBUG -- : Server started!
 
 You can use the `--output` option to configure the different types of
 publishers to publish to. The following example will publish emails to
-`stdout`, `file` system, and `redis`.
+`stdout`, and `file` system.
 
 ```bash
-モ minbox server localhost 8080 --output=stdout file redis
+モ minbox server localhost 8080 --output=stdout file
 D, [2019-03-12T17:16:03.564426 #36907] DEBUG -- : Starting server on port 8080...
 D, [2019-03-12T17:16:03.565964 #36907] DEBUG -- : Server started!
 ```

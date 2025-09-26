@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "redis"
-
 module Minbox
   class LogPublisher
     def initialize(logger = Minbox.logger)
@@ -10,16 +8,6 @@ module Minbox
 
     def publish(mail)
       @logger.debug(mail.to_s)
-    end
-  end
-
-  class RedisPublisher
-    def initialize(redis = Redis.new)
-      @redis = redis
-    end
-
-    def publish(mail)
-      @redis.publish("minbox", mail.to_s)
     end
   end
 
@@ -39,7 +27,6 @@ module Minbox
   class Publisher
     REGISTERED_PUBLISHERS = {
       stdout: LogPublisher,
-      redis: RedisPublisher,
       file: FilePublisher,
     }.freeze
 
