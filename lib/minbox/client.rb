@@ -15,8 +15,8 @@ module Minbox
 
   class Helo
     def run(client, line)
-      _ehlo, _client_domain = line.split(" ")
-      client.write "250 #{client.server.host}"
+      _ehlo, client_domain = line.split(" ")
+      client.write "250 Hello #{client_domain}, pleased to meet you"
     end
   end
 
