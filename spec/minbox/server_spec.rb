@@ -110,7 +110,6 @@ RSpec.describe Minbox::Server do
         let!(:mail) { create_mail }
         let!(:mail_string) { mail.to_s }
 
-        # rubocop:disable RSpec/ExampleLength
         specify do
           threads = []
           10.times do |_n|
@@ -127,7 +126,6 @@ RSpec.describe Minbox::Server do
             threads.map(&:join)
           end
         end
-        # rubocop:enable RSpec/ExampleLength
       end
     end
   end
