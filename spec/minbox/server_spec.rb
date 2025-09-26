@@ -1,6 +1,22 @@
 # frozen_string_literal: true
 
 RSpec.describe Minbox::Server do
+  before :all do
+    @server = Minbox::Server.new(host: "localhost", port: 8080)
+    @server_thread = Thread.new do
+      @server.listen! do |mail|
+        puts mail.inspect
+      end
+    end
+
+    sleep(1)
+  end
+
+  after :all do
+    @server.shutdown!
+    @server_thread.kill
+  end
+
   describe "#handle" do
     let(:host) { "localhost" }
     let(:port) { 8080 }
