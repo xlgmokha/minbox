@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 RSpec.describe Minbox::Inbox do
-  subject! { described_class.instance(root_dir: "tmp") }
+  subject!(:inbox) { described_class.instance(root_dir: "tmp") }
 
   before do
     IO.write("tmp/1.eml", Mail.new do
@@ -27,27 +27,27 @@ RSpec.describe Minbox::Inbox do
         from Faker::Internet.email
         subject "hello world"
       end.to_s)
-      subject.empty!
+      inbox.empty!
     end
 
-    specify { expect(subject.count).to be_zero }
+    specify { expect(inbox.count).to be_zero }
   end
 
   describe "#emails" do
-    specify { expect(subject.emails(count: 2).map(&:subject)).to match_array(["[ACTION] goodbye world", "hello world"]) }
+    specify { expect(inbox.emails(count: 2).map(&:subject)).to match_array(["[ACTION] goodbye world", "hello world"]) }
   end
 
   describe "#wait_until!" do
     context "when the condition is satisfied" do
-      before { subject.wait_until! { |x| x.count == 2 } }
+      before { inbox.wait_until! { |x| x.count == 2 } }
 
-      specify { expect(subject.emails(count: 2).map(&:subject)).to match_array(["[ACTION] goodbye world", "hello world"]) }
+      specify { expect(inbox.emails(count: 2).map(&:subject)).to match_array(["[ACTION] goodbye world", "hello world"]) }
     end
 
     context "when the condition is not satisfied" do
       specify do
         expect do
-          subject.wait_until!(seconds: 0.1) { |_inbox| false }
+          inbox.wait_until!(seconds: 0.1) { |_inbox| false }
         end.to raise_error(/timeout/)
       end
     end
@@ -55,14 +55,14 @@ RSpec.describe Minbox::Inbox do
 
   describe "#open" do
     context "when opening an email by subject" do
-      specify { expect(subject.open(subject: "[ACTION] goodbye world").subject).to eql("[ACTION] goodbye world") }
-      specify { expect(subject.open(subject: /goodbye/).subject).to eql("[ACTION] goodbye world") }
-      specify { expect(subject.open(subject: /hello/).subject).to eql("hello world") }
-      specify { expect(subject.open(subject: /world/).subject).to eql("hello world") }
+      specify { expect(inbox.open(subject: "[ACTION] goodbye world").subject).to eql("[ACTION] goodbye world") }
+      specify { expect(inbox.open(subject: /goodbye/).subject).to eql("[ACTION] goodbye world") }
+      specify { expect(inbox.open(subject: /hello/).subject).to eql("hello world") }
+      specify { expect(inbox.open(subject: /world/).subject).to eql("hello world") }
     end
 
     context "when opening an email not in the inbox" do
-      let(:result) { subject.open(subject: SecureRandom.uuid) }
+      let(:result) { inbox.open(subject: SecureRandom.uuid) }
 
       specify { expect(result).to be_nil }
     end
