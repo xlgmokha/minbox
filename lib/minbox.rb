@@ -8,7 +8,6 @@ require "logger"
 require "socket"
 
 require "minbox/client"
-require "minbox/core"
 require "minbox/inbox"
 require "minbox/publisher"
 require "minbox/server"
@@ -16,4 +15,15 @@ require "minbox/version"
 
 module Minbox
   class Error < StandardError; end
+
+  class << self
+    def logger
+      @logger ||= Logger.new(STDOUT)
+    end
+
+    def logger=(logger)
+      @logger = logger
+    end
+  end
 end
+
